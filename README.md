@@ -8,7 +8,7 @@ OpenRouter uses `google/gemini-2.5-flash` for screen guidance and `google/gemini
 
 Start with [the hackathon demo guide](DEMO.md): launch instructions, a three-minute script, recovery steps, remaining work, and test evidence.
 
-The latest update includes editable voice transcripts with **Run**, a maximum of **8 actions** per task, a stop after **two consecutive unchanged screen states**, and mandatory approval for protected control names/types. The transcription pipeline is unchanged. The buddy can stay beside the cursor when the dashboard closes; it still needs an initial goal. Continuous observation and self-chosen tasks are not implemented.
+The latest update starts voice tasks automatically beside the cursor after transcription, and retains a maximum of **8 actions** per task, a stop after **two consecutive unchanged screen states**, and mandatory approval for protected control names/types. The transcription pipeline is unchanged. The buddy can stay beside the cursor when the dashboard closes; it still needs an initial goal. Continuous observation and self-chosen tasks are not implemented.
 
 The main remaining work is a live rehearsal with your microphone/provider, signed Windows distribution, wider app/voice evaluation, proactive assistance, and a Mac implementation. See [What remains](DEMO.md#what-remains) for the distinction between demo preparation and product expansion.
 
@@ -16,7 +16,7 @@ The main remaining work is a live rehearsal with your microphone/provider, signe
 
 **Tested app-folder build:** open `release-v1.6/win-unpacked/Dexterity.exe` and keep the whole `win-unpacked` folder together. This build does not need a separate Node installation. On the development PC it is at `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`.
 
-**Single-file portable build:** `release-v1.6/Dexterity-1.6.0.exe` was built, but Windows Application Control blocked that wrapper on this PC. The successful packaged tests used the app-folder EXE. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
+**Single-file portable build:** `release-v1.6/Dexterity-1.6.0.exe` is the earlier build, before automatic voice startup was restored. Windows Application Control blocked that wrapper on this PC. The successful packaged tests used the app-folder EXE. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
 
 **From source:** on Windows, install Node.js 22.12 or newer, then run:
 
@@ -29,7 +29,7 @@ npm start
 
 Add your own OpenRouter key in **Settings**. No credentials are distributed with this repository. Dependency installation prepares the local speech detector; it does not download models while recording. On subsequent launches, double-click **Start Dexterity.cmd**. Keep the project and `node_modules` together. A signed distribution is needed for dependable installation on PCs that block unsigned executables; this launcher does not change Windows security settings.
 
-Call the companion by clicking its icon, holding **Ctrl for 3 seconds**, or **triple left-clicking** quickly in the same place. Speak naturally, then pause or click **Done speaking**. Every voice task opens an editable transcript. Correct any words, then press **Run**. No task starts before Run. Action requests such as “fill…” or “open…” choose Do it; you can change the mode before running.
+Call the companion by clicking its icon, holding **Ctrl for 3 seconds**, or **triple left-clicking** quickly in the same place. Speak naturally, then pause or click **Done speaking**. Voice tasks start automatically after transcription and use the remembered target app. There is no Run step or dashboard opening before work starts. Action requests such as “fill…” or “open…” choose Do it; “teach…” chooses Teach me, and other requests use the selected mode. Keep **Use my screen** on for screen tasks. Protected actions still open the dashboard for explicit approval.
 
 Close the dashboard to keep just the cursor buddy running. Right-click the buddy for **Open dashboard** or **Quit Dexterity**. If the companion is disabled, closing the dashboard quits the app.
 
@@ -39,7 +39,7 @@ Press **Escape** or **Stop** to interrupt a running task. Actions already comple
 
 1. Open DaVinci Resolve and your clip, or any app you want help with.
 2. Hold **Ctrl for three seconds**, wait for Listening, then say: **“Teach me how to color grade this clip. Start with one step.”**
-3. Pause. Dexterity turns the microphone off. Review the recognized text and press **Run**; it then reads the screen and shows a small floating lesson card. A confident visible target gets a click-through marker; **Show me where** displays it again.
+3. Pause. Dexterity turns the microphone off. It starts automatically, reads the screen and shows a small floating lesson card. A confident visible target gets a click-through marker; **Show me where** displays it again.
 4. Do the step yourself. Click **I did it →** to have Dexterity read the updated app and teach the next step while keeping the original goal.
 5. Use **Ask a follow-up** to speak again. **Done speaking** finishes immediately; **Cancel** or **Escape** discards the recording. The microphone is not continuously listening between requests.
 
@@ -50,7 +50,7 @@ Teach mode never clicks for you. Markers are visual estimates based on a recent 
 1. Open the app or page you need help with.
 2. In Dexterity, choose **Answer**, **Teach me**, or **Do it**.
 3. Say or type a specific goal. Include the details Dexterity needs. Leave **Use my screen** on for screen-based work.
-4. For voice, review the editable transcript and press **Run**. Dexterity then captures the target app, reads selected text and visible controls, and responds or starts working. There is no separate Capture → Ask sequence in this flow.
+4. After voice transcription, Dexterity starts automatically beside the cursor. It captures the target app, reads selected text and visible controls, and responds or starts working. There is no separate Capture → Ask sequence in this flow.
 5. Continue in the same conversation. Say “explain that more simply” or give the missing information. **New conversation** clears the recent context.
 
 If the wrong app is selected, refresh the **Work in** list and choose the exact window. For websites, choose **Open task browser**, navigate to your site and sign in there. This opens Chrome or Edge with accessibility support enabled in a separate browser profile. Your normal browser may not expose its controls.
@@ -119,7 +119,7 @@ There is no Dexterity server, hosted database, account sync, background schedule
 ## Hackathon demo
 
 1. Close the dashboard to show the cursor companion remains present.
-2. Choose **Answer**, turn **Use my screen** off, activate voice, and ask what “ubiquitous” means. Show the editable transcript, then press **Run**.
+2. Choose **Answer**, turn **Use my screen** off, activate voice, and ask what “ubiquitous” means. Show the answer appearing beside the cursor without another click.
 3. Choose **Try real automation** and **Start task**. Show the local form filling, approval pause, and confirmed submission after you approve.
 4. Switch to **Teach me** on the practice form and ask for one visible step. Show the floating lesson and, when available, **Show me where**.
 
@@ -151,7 +151,7 @@ Use Node.js 22.12 or newer. Run `npm install` and `npm start`. `npm run build:as
 
 - `npm test`: 42 checks at the latest code verification, including the eight-action cap, unchanged-screen stopping, protected name/type matching, cancellation, and approval on repeated actions.
 - `npm run test:native`: Windows native helper self-tests, including protected name/type substring checks.
-- `node tests/voice-task.cjs`: generated audio → editable transcript → zero task requests before Run → edited task request; provider responses are mocked.
+- `node tests/voice-task.cjs`: generated audio → automatic answer without dashboard opening → remembered real form filled automatically → explicit submission approval → verified result. Spoken Stop starts no task; provider responses are mocked.
 - `npm run test:voice`: generated fan/noise, speech followed by noise, and continuous speech through the real local detector and microphone recorder. No room audio is used; provider responses are fixtures.
 - `npm run test:coach`: real sample window, floating lesson, pointer placement flow and next-step recapture with provider fixtures.
 - `npm run test:context`: context library UI, encrypted persistence, import/export, provider context inclusion and optional activity retention.

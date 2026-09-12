@@ -11,8 +11,7 @@ The activated recorder runs Silero V5 locally with ONNX Runtime Web. All model, 
 ```mermaid
 flowchart TD
   U[User activates voice] --> S[Existing transcription pipeline]
-  S --> E[Editable recognized text]
-  E -->|User presses Run| R[Task runner]
+  S -->|Recognized voice goal starts automatically| R[Task runner]
   Y[User submits typed goal] --> R
   V[Encrypted local context vault] --> M[Local context manager]
   R --> M
@@ -36,7 +35,7 @@ flowchart TD
   H --> V
 ```
 
-Voice review is a renderer gate after transcription: the recognized goal is editable, and only the user’s Run action starts that voice task. The recorder and transcription provider pipeline are unchanged. This gate is separate from action approval during a running task. The runner checks the action count before execution; native code independently enforces the protected-control review rule.
+After transcription, the renderer starts a companion task against the app remembered at voice activation. It does not open the dashboard or require Run. The recorder and transcription provider pipeline are unchanged. Recognized cancel/stop commands start no task; manual form-field dictation keeps its existing field-editing flow. The dashboard opens when a running task needs explicit action approval. The runner checks the action count before execution; native code independently enforces the protected-control review rule.
 
 ## Roles and contracts
 
@@ -76,7 +75,7 @@ Every provider response is validated. Operator actions must reference current su
 
 The runner limits work to 8 actions and two minutes per active segment. An action handed to Windows can finish after cancellation, but stale model results cannot start another action. Review expires with the native snapshot. Each action is followed by a screen read; stable text and control names/types/values form a signature, excluding screenshot bytes and snapshot timestamps. Two consecutive unchanged observations stop execution with the last two attempted actions and a request for user input. The fresh snapshot is reused for the next decision. Three failed completion checks also produce a handoff. Names and types containing submit, send, pay, delete, confirm, or purchase require explicit approval in both the runner and native control executor, regardless of the plan or action type. A provider failure is shown without claiming the task succeeded. Optional history write failures do not change the actual task result and are surfaced in the UI.
 
-No task resumes automatically after process restart. In-progress state and screenshots are transient. There is no server, message queue, hosted database, tenant identity, billing backend or background scheduler. The Windows build is unsigned. The app-folder executable (`release-v1.6/win-unpacked/Dexterity.exe`) passes voice review and native form integration checks on this machine. The single-file portable wrapper (`release-v1.6/Dexterity-1.6.0.exe`) was built but its launch was blocked by Windows Application Control. The source launcher also remains available. Neither a Mac native adapter nor proactive background observation is implemented.
+No task resumes automatically after process restart. In-progress state and screenshots are transient. There is no server, message queue, hosted database, tenant identity, billing backend or background scheduler. The Windows build is unsigned. The app-folder executable (`release-v1.6/win-unpacked/Dexterity.exe`) passes automatic voice task and native form integration checks on this machine. The single-file portable wrapper (`release-v1.6/Dexterity-1.6.0.exe`) was built but its launch was blocked by Windows Application Control. The source launcher also remains available. Neither a Mac native adapter nor proactive background observation is implemented.
 
 For the presentation sequence, evidence, and prioritized remaining work, see [DEMO.md](DEMO.md).
 
