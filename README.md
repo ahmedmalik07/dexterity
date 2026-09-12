@@ -4,7 +4,7 @@
 
 **Your screen. Your session. A little AI buddy beside your cursor.**
 
-[Three-minute demo](DEMO.md) · [Architecture](ARCHITECTURE.md) · [Windows build status](docs/WINDOWS.md)
+[Three-minute demo](DEMO.md) · [Product gallery](docs/GALLERY.md) · [Architecture](ARCHITECTURE.md) · [Windows build status](docs/WINDOWS.md)
 
 | Understand | Learn | Act |
 | --- | --- | --- |
@@ -17,6 +17,35 @@ These are **current-interface previews with fictional sample data**, rendered wi
 ![Dexterity workspace with Answer, Teach me and Do it modes](docs/images/workspace.png)
 
 <table><tr><td width="65%"><strong>Bring your context with you</strong><br/>Import, review and export personal context. Enabled memories can help with relevant tasks.<br/><img src="docs/images/context.png" alt="Local context library with fictional preferences"/></td><td width="35%"><strong>Answers beside your cursor</strong><br/>A compact mint bubble keeps the explanation close to what you are working on.<br/><img src="docs/images/companion.png" width="340" alt="Mint companion bubble with a sample word definition"/></td></tr></table>
+
+### Less typing. More doing.
+
+Choose the browser window where you are already signed in. Inspect supported fields, supply the details, and review the action before submitting.
+
+![Form filling interface with sample name, email and project fields in an existing Chrome window](docs/images/form-fill.png)
+
+![Explicit action approval showing the target button, sample field values and action history](docs/images/action-review.png)
+
+### Speak once. Keep working.
+
+<table><tr><td width="50%" align="center"><strong>Voice → task</strong><br/>The microphone turns off before transcription. Work starts when the words are ready.<br/><img src="docs/images/voice.png" width="380" alt="Voice transcription card with microphone off"/></td><td width="50%" align="center"><strong>One step at a time</strong><br/>Read a short lesson, ask for a pointer, then continue when you are ready.<br/><img src="docs/images/teaching.png" width="340" alt="Mint teaching card with Show me where and I did it controls"/></td></tr></table>
+
+### A team with a shared goal
+
+Context manager → coordinator → operator → verifier. The product explains each role and the first-task flow.
+
+![Dexterity agent workflow and first-task walkthrough](docs/images/agent-workflow.png)
+
+<details>
+<summary><strong>See how context comes in from another assistant</strong></summary>
+
+Paste a portable summary, preview the import, then choose what to save and enable.
+
+![Import context from another assistant using a sample Markdown profile](docs/images/context-import.png)
+
+</details>
+
+[Open the full nine-image product gallery →](docs/GALLERY.md)
 
 A little AI buddy next to your cursor. Ask about what you see, learn an app one step at a time, and get a visible marker showing where to click. Version 1.6 adds floating lessons, a cursor companion, local neural speech detection and OpenRouter for screen understanding and voice.
 

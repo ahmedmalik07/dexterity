@@ -1,5 +1,9 @@
 # Dexterity 1.6 architecture
 
+![Agent roles shown in the Dexterity interface](docs/images/agent-workflow.png)
+
+*Current-interface preview with sample data. See the [product gallery](docs/GALLERY.md) for the other surfaces.*
+
 Dexterity is a Windows desktop application with durable personal context and a coordinated agent workflow. The Electron main process owns credentials, persistence, provider requests, cancellation and native actions. Sandboxed renderers show the UI and communicate through narrow preload methods. A C# helper exposes Windows accessibility controls; only the operator can request actions through the task runner.
 
 The cursor lesson surface (`electron/coach.cjs`, `ui/coach.*`) displays a single teaching step outside the dashboard, requests fresh observations for continuation, and keeps the original goal. The model can return a normalized screenshot target; the main process converts it to display coordinates and draws a click-through overlay. Pointer targets expire and native window title/bounds are checked before redisplay. A pointer is advisory, never an automatic click.

@@ -2,7 +2,7 @@
 
 ![Dexterity — understand, learn, act](docs/images/hero.svg)
 
-[Visual product tour](README.md#a-look-inside) · [Windows launch diagnosis and signed build path](docs/WINDOWS.md)
+[Visual product tour](docs/GALLERY.md) · [Windows launch diagnosis and signed build path](docs/WINDOWS.md)
 
 Status: 12 September 2026, version 1.6. This is a working Windows prototype. Voice tasks now start automatically after transcription, with no Run step. The eight-action limit and mandatory approval checks remain. It does not add continuous observation or a Mac version.
 
