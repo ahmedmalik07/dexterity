@@ -14,6 +14,7 @@ if (process.env.DEXTERITY_TEST) app.setPath('userData', path.join(app.getPath('t
 const background = !!(process.env.DEXTERITY_TEST || process.env.DEXTERITY_SETUP);
 let main, orb, pointer, listeningWindow, native, followTimer, pointerTimer, capture, pending = false, orbHeld = false, isListening = false, formBusy = false, voiceStarting = false;
 let voiceSession, quitting=false, taskRunner, contextStore, contextError, coach, coachWindow;
+if(!background){if(!app.requestSingleInstanceLock()){app.quit();return;}app.on('second-instance',()=>{if(main&&!main.isDestroyed())dashboard();});}
 let settings = { model: DEFAULT_MODEL, routerModel:ROUTER_MODEL,routerKey:'',voice: true, demo: false, key: '', geminiKey: '', speechMode:'auto', speechLanguage:'auto', speechPause:1200, ctrlActivation: true, tripleActivation: true, companion: true };
 const prefs = () => path.join(app.getPath('userData'), 'preferences.json');
 function publicSettings() { return { model: settings.model,routerModel:settings.routerModel,hasRouterKey:!!settings.routerKey, geminiModel:GEMINI_MODEL, voice: settings.voice, demo:false, speechMode:settings.speechMode,speechLanguage:settings.speechLanguage,speechPause:settings.speechPause,hasKey: !!settings.key, hasGeminiKey:!!settings.geminiKey, hasAIKey:!!(settings.routerKey||settings.key || settings.geminiKey), encrypted: safeStorage.isEncryptionAvailable(), ctrlActivation: settings.ctrlActivation, tripleActivation: settings.tripleActivation, companion: settings.companion }; }
