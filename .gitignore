@@ -1,0 +1,17 @@
+node_modules/
+release/
+release-v*/
+native/build/
+test-results/
+.env
+*.log
+.build-cache/
+ui/vendor/
+.env.*
+*.vault
+*.vault.tmp
+preferences.json
+*.pem
+*.key
+*.zip
+.codex/
