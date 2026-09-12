@@ -45,9 +45,9 @@ api.onNative(async event=>{
    if(/^(cancel|stop|never mind)$/.test(command)) {dictatingField=null;return toast('Voice request cancelled.');}
    if(dictatingField && $(dictatingField)) { $(dictatingField).value=text;dictatingField=null;invalidateFilled();await api.open();showPage('forms');toast('Dictation added. Check the value before filling.');return; }
    $('question').value=text;
-   if(text.includes('[unclear]') || (event.confidence!==undefined && event.confidence<.6)){await api.open();openAssistant();$('task-goal').value=text;return toast('Some words were unclear. Edit the request, then start it.');}
    const mode=/^(please )?(fill|open|click|select|check|uncheck|scroll|submit|do it|complete the|search for|go to)\b/i.test(text)?'do':/^(please )?(teach|show me how|walk me through|how do i|how can i|how to|help me learn)\b/i.test(text)?'teach':document.querySelector('[name="task-mode"]:checked').value;
-   await startTask(text,{mode,remembered:true,companion:true});
+   await api.open();reviewVoiceTask(text,mode);
+   if(text.includes('[unclear]') || (event.confidence!==undefined && event.confidence<.6))toast('Some words were unclear. Edit the text, then press Run.');
   } catch(e) { toast(e.message); }
   finally { handlingTranscript=false; }
  }

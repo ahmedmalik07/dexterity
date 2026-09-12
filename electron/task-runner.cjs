@@ -1,4 +1,5 @@
 const {plan,needsReview,verifyTask}=require('./agent.cjs');
+function screenSignature(context){return JSON.stringify([context.windowId,context.title,context.text,context.selectedText,(context.controls||[]).map(c=>[c.name,c.type,c.value])]);}
 class TaskRunner {
  constructor(options){Object.assign(this,options);this.history=[];this.run=null;}
  async start(input){
@@ -22,9 +23,10 @@ class TaskRunner {
     this.emit({type:'task-plan',plan:run.plan});
    }
    while(this.active(run)){
-    if(run.count>=12)return this.finish(run,'Paused after 12 actions. Check the app and tell me what to do next.','ask');
+    if(run.count>=8)return this.finish(run,'Stopped after 8 actions. Check the action log. What would you like me to do next?','ask');
     this.emit({type:'task-progress',message:run.screen?'Reading the current screen…':'Thinking about your question…'});
-    const context=run.screen?await this.read(run):{title:'No screen shared',text:'',selectedText:'',controls:[],scrollable:false};
+    const context=run.nextContext||(run.screen?await this.read(run):{title:'No screen shared',text:'',selectedText:'',controls:[],scrollable:false});
+    run.nextContext=null;
     if(!this.active(run))return;
     run.observation=context;
     if(context.windowId)run.windowId=context.windowId;
@@ -45,13 +47,10 @@ class TaskRunner {
      }
      return this.finish(run,decision.answer,decision.status==='continue'?'ask':decision.status);
     }
-    const label=context.controls.find(c=>c.id===decision.action.targetId)?.name||decision.action.value;
-    const signature=JSON.stringify([decision.action.type,label,decision.action.value]);
-    if(run.last===signature)return this.finish(run,'That action did not produce enough progress. Please check the target app; I stopped instead of repeating it.','ask');
-    run.last=signature;
+    const label=(decision.action.type==='scroll'?context.scrollControl:context.controls.find(c=>c.id===decision.action.targetId))?.name||decision.action.value;
     if(needsReview(decision.action,context)){
      run.review={decision,context};clearTimeout(run.timer);run.timer=setTimeout(()=>this.stop('The review expired. Run the task again to read the current screen.'),Math.max(1,Math.min(55000,(context.expiresAt||Date.now()+56000)-Date.now()-1000)));
-     this.emit({type:'task-review',id:run.id,label,action:decision.action.type,answer:decision.answer,fields:context.controls.filter(c=>c.actions.includes('type')).map(c=>({name:c.name,value:c.value}))});return;
+     this.emit({type:'task-review',id:run.id,label,action:decision.action.type,value:decision.action.value,answer:decision.answer,fields:context.controls.filter(c=>c.actions.includes('type')).map(c=>({name:c.name,value:c.value}))});return;
     }
     await this.execute(run,decision.action,context,false,label);
    }
@@ -59,17 +58,29 @@ class TaskRunner {
  }
  async execute(run,action,context,confirmed,label){
   if(!this.active(run))return;
+  if(run.count>=8)return this.finish(run,'Stopped after 8 actions. Check the action log. What would you like me to do next?','ask');
+  if(needsReview(action,context)&&!confirmed)throw new Error('This control requires your explicit approval.');
   this.emit({type:'task-progress',message:`${action.type}: ${label}`});
   await this.act(action,context,confirmed);
   if(!this.active(run))return;
   run.count++;run.progress.push({action:action.type,target:label,value:action.type==='type'?action.value:undefined,result:'Action performed; inspect the next screen to verify outcome.'});
   if(action.type==='open_url'){run.windowId='';run.remembered=false;}
   this.emit({type:'task-step',number:run.count,message:`${action.type}: ${label}`});
+  const after=await this.read(run);
+  if(!this.active(run))return;
+  run.nextContext=after;
+  run.unchanged=screenSignature(context)===screenSignature(after)?(run.unchanged||0)+1:0;
+  run.progress.at(-1).result=run.unchanged?'No observable screen change.':'The screen changed after this action.';
+  if(run.unchanged>=2){
+   const tried=run.progress.filter(p=>p.action).slice(-2).map(p=>`${p.action}: ${p.target}${p.value!==undefined?' = '+JSON.stringify(p.value):''}`).join('; ');
+   return this.finish(run,`Stopped: the screen was unchanged after two consecutive actions. Tried: ${tried}. What would you like me to do?`,'ask');
+  }
+  if(run.unchanged)this.emit({type:'task-progress',message:`No screen change after ${action.type}: ${label}. One more unchanged action will stop the task.`});
  }
  async approve(id){
   const run=this.run;if(!run||run.id!==id||!run.review)throw new Error('That review has expired.');
   const{decision,context}=run.review;run.review=null;clearTimeout(run.timer);run.timer=setTimeout(()=>this.stop('Stopped after two minutes.'),120000);
-  try{await this.execute(run,decision.action,context,true,context.controls.find(c=>c.id===decision.action.targetId)?.name||'Reviewed action');if(this.active(run))void this.loop(run);}catch(error){if(this.active(run))this.finish(run,error.message,'error');}
+  try{await this.execute(run,decision.action,context,true,(decision.action.type==='scroll'?context.scrollControl:context.controls.find(c=>c.id===decision.action.targetId))?.name||'Reviewed action');if(this.active(run))void this.loop(run);}catch(error){if(this.active(run))this.finish(run,error.message,'error');}
  }
  finish(run,answer,status){if(this.run!==run)return;clearTimeout(run.timer);run.controller.abort();this.run=null;if(status!=='error'){this.history.push({goal:run.goal,answer});this.history=this.history.slice(-6);}let storageError;try{this.record?.(run,answer,status);}catch(error){storageError=error.message;}this.emit({type:'task-finished',answer,status,actions:run.count,storageError});this.restore(run,{answer,status});}
  stop(message='Task stopped. Actions already performed remain in the target app.'){if(this.run)this.finish(this.run,message,'stopped');}

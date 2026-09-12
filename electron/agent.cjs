@@ -29,8 +29,9 @@ function parseDecision(value,mode,context){
  return value;
 }
 function needsReview(action,context){
+ const control=action.type==='scroll'?context.scrollControl:context.controls.find(c=>c.id===action.targetId);
+ if(control?.requiresApproval===true||/submit|send|pay|delete|confirm|purchase/i.test(`${control?.name||''} ${control?.type||''}`))return true;
  if(!['click','toggle','select'].includes(action.type))return false;
- const control=context.controls.find(c=>c.id===action.targetId);
  return /\b(submit|send|post|publish|delete|remove|pay|buy|purchase|order|checkout|transfer|confirm|approve|accept|agree|install|uninstall|register|sign.?up|save|apply|finish|complete|create account)\b/i.test(control?.name||'');
 }
 async function plan(settings,{goal,mode,context,history,progress,memories=[],taskPlan},signal,fetcher=globalThis.fetch){

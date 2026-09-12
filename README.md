@@ -17,7 +17,7 @@ npm start
 
 Add your own OpenRouter key in **Settings**. No credentials are distributed with this repository. Dependency installation prepares the local speech detector; it does not download models while recording. On subsequent launches, double-click **Start Dexterity.cmd**. Keep the project and `node_modules` together. A signed distribution is needed for dependable installation on PCs that block unsigned executables; this launcher does not change Windows security settings.
 
-Call the companion by clicking its icon, holding **Ctrl for 3 seconds**, or **triple left-clicking** quickly in the same place. Speak naturally, then pause or click **Done speaking**. Voice requests now start automatically using the selected mode; action requests such as “fill…” or “open…” choose Do it. Unclear transcription is left for you to edit.
+Call the companion by clicking its icon, holding **Ctrl for 3 seconds**, or **triple left-clicking** quickly in the same place. Speak naturally, then pause or click **Done speaking**. Every voice task opens an editable transcript. Correct any words, then press **Run**. No task starts before Run. Action requests such as “fill…” or “open…” choose Do it; you can change the mode before running.
 
 Close the dashboard to keep just the cursor buddy running. Right-click the buddy for **Open dashboard** or **Quit Dexterity**. If the companion is disabled, closing the dashboard quits the app.
 
@@ -27,7 +27,7 @@ Press **Escape** or **Stop** to interrupt a running task. Actions already comple
 
 1. Open DaVinci Resolve and your clip, or any app you want help with.
 2. Hold **Ctrl for three seconds**, wait for Listening, then say: **“Teach me how to color grade this clip. Start with one step.”**
-3. Pause. Dexterity turns the microphone off, reads the screen and shows a small floating lesson card. A confident visible target gets a click-through marker; **Show me where** displays it again.
+3. Pause. Dexterity turns the microphone off. Review the recognized text and press **Run**; it then reads the screen and shows a small floating lesson card. A confident visible target gets a click-through marker; **Show me where** displays it again.
 4. Do the step yourself. Click **I did it →** to have Dexterity read the updated app and teach the next step while keeping the original goal.
 5. Use **Ask a follow-up** to speak again. **Done speaking** finishes immediately; **Cancel** or **Escape** discards the recording. The microphone is not continuously listening between requests.
 
@@ -38,7 +38,7 @@ Teach mode never clicks for you. Markers are visual estimates based on a recent 
 1. Open the app or page you need help with.
 2. In Dexterity, choose **Answer**, **Teach me**, or **Do it**.
 3. Say or type a specific goal. Include the details Dexterity needs. Leave **Use my screen** on for screen-based work.
-4. Dexterity captures the target app, reads selected text and visible controls, and responds or starts working. There is no separate Capture → Ask sequence in this flow.
+4. For voice, review the editable transcript and press **Run**. Dexterity then captures the target app, reads selected text and visible controls, and responds or starts working. There is no separate Capture → Ask sequence in this flow.
 5. Continue in the same conversation. Say “explain that more simply” or give the missing information. **New conversation** clears the recent context.
 
 If the wrong app is selected, refresh the **Work in** list and choose the exact window. For websites, choose **Open task browser**, navigate to your site and sign in there. This opens Chrome or Edge with accessibility support enabled in a separate browser profile. Your normal browser may not expose its controls.
@@ -69,7 +69,7 @@ Before reporting completion, a separate check compares the goal with the current
 
 Submission, sending, payment and destructive controls pause for review. Check the displayed fields and target app, then approve the exact action. Changed field values invalidate the review. Reviews expire while waiting. A clicked submission button is not proof that a server accepted the request; Dexterity reads the resulting screen for confirmation.
 
-Tasks are bounded to 12 actions and two minutes of a running segment. Stop and narrow the goal if it becomes stuck. Follow-up questions retain the last six exchanges in memory. The coordinator plan is reused after a review. The UI shows the plan, active role and titles of memories included.
+Tasks are bounded to 8 actions and two minutes of a running segment. After each action, a signature of visible text and control names/types/values is compared with the previous screen. Two consecutive unchanged actions stop the task, show what was tried, and ask you what to do. Controls whose name or type contains submit, send, pay, delete, confirm, or purchase always need explicit approval, including typing and scrolling. A plan cannot override this rule. Follow-up questions retain the last six exchanges in memory. The coordinator plan is reused after a review. The UI shows the plan, active role and titles of memories included.
 
 ## Bring your context from other assistants
 

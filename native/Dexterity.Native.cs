@@ -262,13 +262,16 @@ public static class DexterityNative {
             if(actions.Count>0 && !String.IsNullOrWhiteSpace(name) && controls.Count<100) {
               string cid="control-"+controls.Count;agentControls[cid]=el;agentNames[cid]=el.Current.Name;
               if(actions.Contains("type"))agentValues[cid]=((ValuePattern)el.GetCurrentPattern(ValuePattern.Pattern)).Current.Value;
-              controls.Add(new{id=cid,name=name,type=el.Current.ControlType.ProgrammaticName,value=value,actions=actions});
+              controls.Add(new{id=cid,name=name,type=el.Current.ControlType.ProgrammaticName,value=value,actions=actions,requiresApproval=RequiresExplicitReview(el.Current.Name,el.Current.ControlType.ProgrammaticName)});
             }
           }catch(ElementNotAvailableException){}catch(InvalidOperationException){}
         }
         var bounds=root.Current.BoundingRectangle;
-        return new{token=agentToken,expiresAt=(long)(agentAt.AddSeconds(60)-new DateTime(1970,1,1)).TotalMilliseconds,windowId=h.ToInt64().ToString(),title=agentTitle,selectedText=selected,text=Clip(texts.ToString(),12000),controls=controls,scrollable=scrollTarget!=null,bounds=new{x=bounds.X,y=bounds.Y,width=bounds.Width,height=bounds.Height}};
+        return new{token=agentToken,expiresAt=(long)(agentAt.AddSeconds(60)-new DateTime(1970,1,1)).TotalMilliseconds,windowId=h.ToInt64().ToString(),title=agentTitle,selectedText=selected,text=Clip(texts.ToString(),12000),controls=controls,scrollable=scrollTarget!=null,scrollControl=scrollTarget==null?null:new{name=scrollTarget.Current.Name,type=scrollTarget.Current.ControlType.ProgrammaticName},bounds=new{x=bounds.X,y=bounds.Y,width=bounds.Width,height=bounds.Height}};
       }
+    }
+    static bool RequiresExplicitReview(string name,string type) {
+      return System.Text.RegularExpressions.Regex.IsMatch((name??"")+" "+(type??""),"submit|send|pay|delete|confirm|purchase",System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     }
     static object AgentAction(Dictionary<string,object> c) {
       lock(agentLock){
@@ -280,11 +283,13 @@ public static class DexterityNative {
         if(Text(c,"confirmed")=="True")foreach(var item in agentValues){if(((ValuePattern)agentControls[item.Key].GetCurrentPattern(ValuePattern.Pattern)).Current.Value!=item.Value)throw new Exception("A field changed after the review. Run the task again before submitting.");}
         if(type=="scroll"){
           if(scrollTarget==null || (value!="down" && value!="up"))throw new Exception("No supported scroll area found.");
+          if(RequiresExplicitReview(scrollTarget.Current.Name,scrollTarget.Current.ControlType.ProgrammaticName) && Text(c,"confirmed")!="True")throw new Exception("Review this action in Dexterity first.");
           ((ScrollPattern)scrollTarget.GetCurrentPattern(ScrollPattern.Pattern)).Scroll(ScrollAmount.NoAmount,value=="down"?ScrollAmount.LargeIncrement:ScrollAmount.LargeDecrement);
         }else{
           if(!agentControls.ContainsKey(cid))throw new Exception("Control unavailable.");
           var el=agentControls[cid];object p;
           if(el.Current.IsPassword || el.Current.IsOffscreen || !el.Current.IsEnabled || el.Current.Name!=agentNames[cid])throw new Exception("The control changed. Run the task again.");
+          if(RequiresExplicitReview(el.Current.Name,el.Current.ControlType.ProgrammaticName) && Text(c,"confirmed")!="True")throw new Exception("Review this action in Dexterity first.");
           if(type!="type" && System.Text.RegularExpressions.Regex.IsMatch(el.Current.Name,@"\b(submit|send|post|publish|delete|remove|pay|buy|purchase|order|checkout|transfer|confirm|approve|accept|agree|install|uninstall|register|sign.?up|save|apply|finish|complete|create account)\b",System.Text.RegularExpressions.RegexOptions.IgnoreCase) && Text(c,"confirmed")!="True")throw new Exception("Review this action in Dexterity first.");
           if(type=="click") {
             if(System.Text.RegularExpressions.Regex.IsMatch(el.Current.Name,@"\b(submit|send|post|publish|delete|remove|pay|buy|purchase|order|checkout|transfer|confirm|approve|accept|agree|install|uninstall|register|sign.?up|save|apply|finish|complete|create account)\b",System.Text.RegularExpressions.RegexOptions.IgnoreCase) && Text(c,"confirmed")!="True")throw new Exception("Review this action in Dexterity first.");
@@ -352,6 +357,11 @@ public static class DexterityNative {
     }
     static void Check(bool value,string message) { if(!value) throw new Exception("FAIL: "+message); }
     static void SelfTest() {
+        foreach(var word in new[]{"submit","send","pay","delete","confirm","purchase"}) {
+          Check(RequiresExplicitReview("prefix"+word.ToUpperInvariant()+"suffix","ControlType.Edit"),"protected name substring: "+word);
+          Check(RequiresExplicitReview("Details","ControlType."+word),"protected control type: "+word);
+        }
+        Check(!RequiresExplicitReview("Full name","ControlType.Edit"),"ordinary field does not require review");
         var g=new Gestures(); g.Control(true,0); Check(!g.Tick(2999),"early hold"); Check(g.Tick(3000),"3 second hold"); Check(!g.Tick(5000),"one activation per hold");
         g.Control(false,5001); g.Control(true,6000); g.OtherKey(); Check(!g.Tick(10000),"Ctrl chord must not activate"); g.Control(false,10001);
         Check(!g.Click(0,20,20,true) && !g.Click(250,20,20,true) && g.Click(500,20,20,true),"triple click");
@@ -367,7 +377,7 @@ public static class DexterityNative {
                 }
             }
         }
-        Console.WriteLine("PASS: Ctrl threshold, release, chord suppression, triple-click timing, offline speech audio recognition.");
+        Console.WriteLine("PASS: mandatory approval names/types, Ctrl threshold, release, chord suppression, triple-click timing, offline speech audio recognition.");
     }
     static void TestForm() {
         var form=new Form { Text="Dexterity practice form", Width=540, Height=360 };

@@ -1,7 +1,7 @@
 const{_electron:electron}=require('@playwright/test');const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 (async()=>{
  const env={...process.env,DEXTERITY_TEST:'1'};delete env.ELECTRON_RUN_AS_NODE;
- const desktop=await electron.launch({args:['.'],env});
+ const desktop=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.6/win-unpacked/Dexterity.exe')}:{}),args:[...(process.env.DEXTERITY_PACKAGED?[]:['.'])],env});
  try{
   await desktop.firstWindow();let page;
   for(let i=0;i<100;i++){page=desktop.windows().find(p=>p.url().endsWith('/index.html'));if(page)break;await new Promise(r=>setTimeout(r,100));}
