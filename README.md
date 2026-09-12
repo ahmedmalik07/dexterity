@@ -4,9 +4,21 @@ A little AI buddy next to your cursor. Ask about what you see, learn an app one 
 
 OpenRouter uses `google/gemini-2.5-flash` for screen guidance and `google/gemini-2.5-flash-lite` for transcription. Without an OpenRouter key, direct OpenAI/Gemini connections remain available. Each response shows its provider. This is a Windows hackathon prototype; DaVinci Resolve guidance uses screenshots and has not been comprehensively validated across Resolve versions.
 
+## Current status and demo
+
+Start with [the hackathon demo guide](DEMO.md): launch instructions, a three-minute script, recovery steps, remaining work, and test evidence.
+
+The latest update includes editable voice transcripts with **Run**, a maximum of **8 actions** per task, a stop after **two consecutive unchanged screen states**, and mandatory approval for protected control names/types. The transcription pipeline is unchanged. The buddy can stay beside the cursor when the dashboard closes; it still needs an initial goal. Continuous observation and self-chosen tasks are not implemented.
+
+The main remaining work is a live rehearsal with your microphone/provider, signed Windows distribution, wider app/voice evaluation, proactive assistance, and a Mac implementation. See [What remains](DEMO.md#what-remains) for the distinction between demo preparation and product expansion.
+
 ## Start and call Dexterity
 
-On Windows, install Node.js 22.12 or newer, then run:
+**Tested app-folder build:** open `release-v1.6/win-unpacked/Dexterity.exe` and keep the whole `win-unpacked` folder together. This build does not need a separate Node installation. On the development PC it is at `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`.
+
+**Single-file portable build:** `release-v1.6/Dexterity-1.6.0.exe` was built, but Windows Application Control blocked that wrapper on this PC. The successful packaged tests used the app-folder EXE. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
+
+**From source:** on Windows, install Node.js 22.12 or newer, then run:
 
 ```powershell
 git clone https://github.com/ahmedmalik07/dexterity.git
@@ -104,13 +116,14 @@ The vault requires the original Windows/Electron profile key. Copying the encryp
 
 There is no Dexterity server, hosted database, account sync, background scheduler or automatic cross-device sync. Work runs while the desktop app is open. See [ARCHITECTURE.md](ARCHITECTURE.md) for the implementation and extension boundaries.
 
-## A two-minute hackathon demo
+## Hackathon demo
 
-1. Choose **Answer**, turn screen sharing off, and ask “What does ubiquitous mean?” Follow with “Use it in a sentence.”
-2. Highlight a word in a browser page and press **Ctrl + Shift + E**. Show the meaning in context.
-3. Choose **Try real automation** in the examples. Dexterity opens a local sample form and fills in a suggested task. Press **Start task**.
-4. Watch it fill name and email, stop for review, then submit the approved local form and read its confirmation. This sample does not submit anything to a website.
-5. Open a real app, choose **Teach me**, and ask how to use it. Do a step and ask it to check your progress.
+1. Close the dashboard to show the cursor companion remains present.
+2. Choose **Answer**, turn **Use my screen** off, activate voice, and ask what “ubiquitous” means. Show the editable transcript, then press **Run**.
+3. Choose **Try real automation** and **Start task**. Show the local form filling, approval pause, and confirmed submission after you approve.
+4. Switch to **Teach me** on the practice form and ask for one visible step. Show the floating lesson and, when available, **Show me where**.
+
+Use [DEMO.md](DEMO.md) for exact prompts, preparation, optional DaVinci/context segments, and recovery steps. The live demo uses the configured AI provider; there is no fake/offline answer mode. Rehearse with the actual microphone and connection before presenting.
 
 ## Voice
 
@@ -136,7 +149,9 @@ AI requests incur provider usage. Requests have a 2,600-token output cap. Do it 
 
 Use Node.js 22.12 or newer. Run `npm install` and `npm start`. `npm run build:assets` generates the PNG/ICO from the original SVG mark; `npm run dist` packages Windows.
 
-- `npm test`: response, provider, transcription and task-runner validation, cancellation and review behavior.
+- `npm test`: 42 checks at the latest code verification, including the eight-action cap, unchanged-screen stopping, protected name/type matching, cancellation, and approval on repeated actions.
+- `npm run test:native`: Windows native helper self-tests, including protected name/type substring checks.
+- `node tests/voice-task.cjs`: generated audio → editable transcript → zero task requests before Run → edited task request; provider responses are mocked.
 - `npm run test:voice`: generated fan/noise, speech followed by noise, and continuous speech through the real local detector and microphone recorder. No room audio is used; provider responses are fixtures.
 - `npm run test:coach`: real sample window, floating lesson, pointer placement flow and next-step recapture with provider fixtures.
 - `npm run test:context`: context library UI, encrypted persistence, import/export, provider context inclusion and optional activity retention.
@@ -147,6 +162,8 @@ Use Node.js 22.12 or newer. Run `npm install` and `npm start`. `npm run build:as
 - `node tests/microphone.cjs`: real microphone start and cancel with no upload.
 - `node scripts/verify-tasks.cjs`: live Gemini general answers and autonomous changes to the local sample form using the saved key.
 - `node scripts/verify-openrouter.cjs`: live OpenRouter answer, generated speech transcription and visual teaching on the local sample form. Run `npm run test:voice` first to generate the speech fixture.
+
+To target the built app-folder EXE for the voice and task integration tests, set `$env:DEXTERITY_PACKAGED='1'` in PowerShell, run `node tests/voice-task.cjs` and `node tests/tasks.cjs`, then remove it with `Remove-Item Env:DEXTERITY_PACKAGED`. The voice test needs `test-results/speech.wav`, generated by `npm run test:voice`. Both packaged tests passed for the latest code update with mocked provider responses; this is not proof of live provider availability.
 
 Run desktop tests sequentially because they share the screen. Tests use temporary profiles unless explicitly described as live checks. Keep user keys out of tests, source and packaged files.
 
