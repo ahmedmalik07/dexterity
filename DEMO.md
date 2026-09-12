@@ -18,13 +18,13 @@ The live provider rehearsal passed voice answers, existing-session navigation, a
 
 ## Before you present
 
-1. Open `release-v1.6/win-unpacked/Dexterity.exe`. On the development PC, the full path is `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`. Keep the entire `win-unpacked` folder together. Earlier app-folder builds passed packaged voice and form tests; the latest rebuild is blocked from launch on this PC.
+1. Open `release-v1.7/win-unpacked/Dexterity.exe`. On the development PC, the full path is `C:\Users\acer\Desktop\Work\clicky\release-v1.7\win-unpacked\Dexterity.exe`. Keep the entire `win-unpacked` folder together. Earlier app-folder builds passed packaged voice and form tests; the latest rebuild is blocked from launch on this PC.
 2. In **Settings**, check that your OpenRouter connection is configured. Run one short question to check the current connection and account access. The automated tests do not prove that your live provider has credit or that venue Wi-Fi will work. Keep credentials out of your presentation.
 3. Use a close microphone or headset. Rehearse one sentence in your own accent. Wait for Listening before speaking, then pause or use **Done speaking**. Voice starts work automatically. If the request is wrong, press **Escape**, then repeat it or use typed input.
 4. Close irrelevant windows and notifications. Use the local practice form with the sample details below. Keep **Escape** available to stop a task. Leave the target form untouched while Dexterity works.
 5. Rehearse the sequence below once with the actual provider. Allow extra time for network responses; the timings are a presentation target, not a latency guarantee.
 
-The older single-file `release-v1.6/Dexterity-1.6.0.exe` was built before automatic voice startup was restored, and Windows Application Control blocked its launch on this PC. It is not the tested launch path for this presentation. `Start Dexterity.cmd` also runs the source version when the project and installed dependencies are present.
+The older single-file `release-v1.7/Dexterity-1.7.0.exe` was built before automatic voice startup was restored, and Windows Application Control blocked its launch on this PC. It is not the tested launch path for this presentation. `Start Dexterity.cmd` also runs the source version when the project and installed dependencies are present.
 
 ## Four concrete tasks to present
 

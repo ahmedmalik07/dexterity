@@ -47,7 +47,7 @@ Paste a portable summary, preview the import, then choose what to save and enabl
 
 [Open the full nine-image product gallery →](docs/GALLERY.md)
 
-A little AI buddy next to your cursor. Ask about what you see, learn an app one step at a time, and get a visible marker showing where to click. Version 1.6 adds floating lessons, a cursor companion, local neural speech detection and OpenRouter for screen understanding and voice.
+A little AI buddy next to your cursor. Ask about what you see, learn an app one step at a time, and get a visible marker showing where to click. Version 1.7 runs on Gemini 2.5 Pro through OpenRouter with automatic downgrade to Flash, shows what it heard before acting on your voice, keeps a visible action log with a measured time and cost for every task, and adds a Playbook page that teaches the whole flow.
 
 ## Current launch status
 
@@ -57,7 +57,7 @@ The existing-session browser fix and highlighted-text companion flow passed sour
 
 ## Use it when the build is permitted to launch
 
-1. Open `release-v1.6/win-unpacked/Dexterity.exe`. Keep the surrounding files with it. Configure your AI connection once in **Settings** and leave **Use my screen** enabled for screen tasks.
+1. Open `release-v1.7/win-unpacked/Dexterity.exe`. Keep the surrounding files with it. Configure your AI connection once in **Settings** and leave **Use my screen** enabled for screen tasks.
 2. Focus the app you want help with. Hold **Ctrl for 3 seconds**, wait for Listening, then say your goal.
 3. Pause. **Transcription → task starts automatically → progress/result beside your cursor.** You do not reopen the dashboard or press Run to start a voice task.
 
@@ -67,7 +67,21 @@ The dashboard opens for explicit approval of protected actions. **Escape** stops
 
 The companion is a small mint-and-dark-green cursor with compact pale-mint speech bubbles. Teaching uses an arrow and short label at the discussed control. Highlight a word or passage in your browser and press **Ctrl + Shift + E** to see its meaning beside the cursor.
 
-OpenRouter uses `google/gemini-2.5-flash` for screen guidance and `google/gemini-2.5-flash-lite` for transcription. Without an OpenRouter key, direct OpenAI/Gemini connections remain available. Each response shows its provider. This is a Windows hackathon prototype; DaVinci Resolve guidance uses screenshots and has not been comprehensively validated across Resolve versions.
+OpenRouter uses `google/gemini-2.5-pro` for screen guidance, falling back to `google/gemini-2.5-flash` and then `google/gemini-2.5-flash-lite` when the chosen model is unavailable or rate limited, and `google/gemini-2.5-flash-lite` for transcription. Every answer names the model that actually served it. Change the model in Settings; Flash is roughly twice as fast and a fifth of the price, Pro places on-screen pointers more accurately. Without an OpenRouter key, direct OpenAI/Gemini connections remain available. Each response shows its provider. This is a Windows hackathon prototype; DaVinci Resolve guidance uses screenshots and has not been comprehensively validated across Resolve versions.
+
+## New in 1.7
+
+**A built-in demo key.** This build ships an OpenRouter credential so it works with no setup. It lives in `electron/bundled-key.cjs`, which is excluded from Git, so the key is never published with the source. A key you paste into Settings replaces it. Rotate the built-in key after the event.
+
+**Check what it heard before it acts.** After transcription, the recognised text appears in an editable box with a five-second countdown. Correct a word and the countdown stops. Run it now, say it again, or cancel. Turn this off in Settings for fully hands-free voice.
+
+**Spelling hints for your accent.** Settings has a **Words Dexterity keeps mishearing** field. Names, apps and places you enter there are sent with each recording as preferred spellings. This is the single most effective fix when a recogniser keeps producing the wrong proper noun.
+
+**A visible action log.** Every performed action is listed with its elapsed second, the control it touched and the value typed. The completion check is written underneath as a pass or fail row, so a failed check and the retry that follows are both visible rather than implied.
+
+**Measured time and cost.** Each task shows elapsed seconds, model requests, tokens and an estimated price, updating while it runs. The price uses the published per-token rate of the model that actually served the request; a model with no published rate shows tokens without a price.
+
+**A Playbook page.** One place that teaches the whole loop, with around twenty everyday phrasings grouped by mode. Each row loads its wording straight into the task box, so the flow is learned by using it. It also lists what stops for approval and what to do when a word is misheard.
 
 ## Current status and demo
 
@@ -79,9 +93,9 @@ The main remaining work is a live rehearsal with your microphone/provider, signe
 
 ## Start and call Dexterity
 
-**App-folder build (latest launch blocked on this PC):** open `release-v1.6/win-unpacked/Dexterity.exe` and keep the whole `win-unpacked` folder together. This build does not need a separate Node installation. On the development PC it is at `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`.
+**App-folder build (latest launch blocked on this PC):** open `release-v1.7/win-unpacked/Dexterity.exe` and keep the whole `win-unpacked` folder together. This build does not need a separate Node installation. On the development PC it is at `C:\Users\acer\Desktop\Work\clicky\release-v1.7\win-unpacked\Dexterity.exe`.
 
-**Single-file portable build:** `release-v1.6/Dexterity-1.6.0.exe` is the earlier build, before automatic voice startup was restored. Windows Application Control blocked that wrapper on this PC. Earlier successful packaged tests used the app-folder EXE; the newest rebuild is also blocked on this PC. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
+**Single-file portable build:** `release-v1.7/Dexterity-1.7.0.exe` is the earlier build, before automatic voice startup was restored. Windows Application Control blocked that wrapper on this PC. Earlier successful packaged tests used the app-folder EXE; the newest rebuild is also blocked on this PC. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
 
 **From source:** on Windows, install Node.js 22.12 or newer, then run:
 

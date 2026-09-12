@@ -5,7 +5,7 @@ const {pathToFileURL}=require('node:url');const path=require('node:path');const 
  const browser=await chromium.launch({channel:'chrome',headless:false});let app;
  try{
   const form=await browser.newPage();await form.goto(pathToFileURL(path.resolve('tests/browser-form.html')).href);
-  app=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.6/win-unpacked/Dexterity.exe')}:{}),args:process.env.DEXTERITY_PACKAGED?[]:['.'],env});await app.firstWindow();let page;
+  app=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.7/win-unpacked/Dexterity.exe')}:{}),args:process.env.DEXTERITY_PACKAGED?[]:['.'],env});await app.firstWindow();let page;
   for(let i=0;i<100;i++){page=app.windows().find(p=>p.url().endsWith('/index.html'));if(page)break;await new Promise(r=>setTimeout(r,100));}
   await page.locator('#forms-nav').waitFor();await page.evaluate(()=>window.dexterity.nativeHealth());
   const windows=await page.evaluate(()=>window.dexterity.listFormWindows()),target=windows.find(w=>w.title.startsWith('Dexterity Browser Form Test'));

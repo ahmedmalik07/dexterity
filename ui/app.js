@@ -6,14 +6,16 @@ function showPage(name) {
  window.scrollTo(0, 0);
  document.querySelectorAll('.page').forEach(el => el.hidden = el.id !== name);
  document.querySelectorAll('.nav').forEach(el => el.classList.toggle('active', el.dataset.page === name));
- $('page-label').textContent = { home: 'Overview', guide: 'Screen assistant', history: 'Session history', settings: 'Settings', forms: 'Fill a form' }[name];
+ $('page-label').textContent = { home: 'Overview', guide: 'Screen assistant', history: 'Session history', settings: 'Settings', forms: 'Fill a form', assistant: 'Ask Dexterity', playbook: 'Playbook', team: 'How it works', context: 'My context' }[name] || 'Workspace';
  if (name === 'history') renderHistory();
  if (name !== 'guide') speechSynthesis.cancel();
 }
 function syncSettings() {
  $('model').value = prefs.model; $('voice').checked = prefs.voice;
- if($('router-key')){$('router-key').value='';$('router-key').placeholder=prefs.hasRouterKey?'Key saved — enter a replacement':'Paste your OpenRouter API key';$('router-model').value=prefs.routerModel||'google/gemini-2.5-flash';$('router-status').textContent=prefs.hasRouterKey?'OpenRouter connected · primary for AI requests':'Add OpenRouter for screen understanding and multilingual voice.';}
+ if($('router-key')){$('router-key').value='';$('router-key').placeholder=prefs.hasRouterKey?'Key saved — enter a replacement':'Paste your OpenRouter API key';$('router-model').value=prefs.routerModel||'google/gemini-2.5-pro';$('router-status').textContent=prefs.bundledRouterKey?'Using this build’s built-in demo key. Paste your own to replace it.':prefs.hasRouterKey?'Your OpenRouter key is saved and used first for AI requests.':'Add OpenRouter for screen understanding and multilingual voice.';}
  if($('speech-mode')){$('speech-mode').value=prefs.speechMode;$('speech-language').value=prefs.speechLanguage;$('speech-pause').value=String(prefs.speechPause);}
+ if($('speech-vocabulary'))$('speech-vocabulary').value=prefs.speechVocabulary||'';
+ if($('voice-review'))$('voice-review').checked=prefs.voiceReview!==false;
  $('gemini-key').value=''; $('gemini-key').placeholder=prefs.hasGeminiKey?'Key saved — enter a new key to replace it':'Paste your Google AI Studio API key';
  $('gemini-key-status').textContent=prefs.hasGeminiKey?(prefs.encrypted?'Gemini key saved with Windows encryption.':'Gemini key available for this visit only.'):'Add a Gemini key to enable the backup.';
  if($('ctrl-activation')) { $('ctrl-activation').checked=prefs.ctrlActivation; $('triple-activation').checked=prefs.tripleActivation; }
@@ -82,7 +84,7 @@ $('next').onclick = () => { if (!guide) return; if (stepIndex < guide.steps.leng
 $('read-again').onclick = () => { if (!prefs.voice) return toast('Enable “Read steps aloud” in Settings first.'); if (guide) renderGuide(); };
 $('stop-voice').onclick = () => speechSynthesis.cancel();
 $('companion').onclick = async () => { try { companion = await api.companion(!companion); prefs.companion=companion; $('companion').setAttribute('aria-pressed', companion); toast(companion ? 'Click the companion to talk. Right-click it to open the menu.' : 'Floating companion paused. Voice shortcuts still work.'); } catch (e) { toast(e.message); } };
-$('settings-form').onsubmit = async event => { event.preventDefault(); try { prefs = await api.saveSettings({routerKey:$('router-key').value,routerModel:$('router-model').value.trim(), key: $('api-key').value, model: $('model').value.trim(), voice: $('voice').checked, geminiKey:$('gemini-key').value,speechMode:$('speech-mode').value,speechLanguage:$('speech-language').value,speechPause:Number($('speech-pause').value), ctrlActivation:$('ctrl-activation').checked, tripleActivation:$('triple-activation').checked }); syncSettings(); toast('Preferences saved. You’re ready to start a session.'); document.dispatchEvent(new Event('prefs-loaded')); } catch (e) { toast(e.message); } };
+$('settings-form').onsubmit = async event => { event.preventDefault(); try { prefs = await api.saveSettings({routerKey:$('router-key').value,routerModel:$('router-model').value.trim(), key: $('api-key').value, model: $('model').value.trim(), voice: $('voice').checked, geminiKey:$('gemini-key').value,speechMode:$('speech-mode').value,speechLanguage:$('speech-language').value,speechPause:Number($('speech-pause').value), speechVocabulary:$('speech-vocabulary')?.value||'', voiceReview:$('voice-review')?$('voice-review').checked:true, ctrlActivation:$('ctrl-activation').checked, tripleActivation:$('triple-activation').checked }); syncSettings(); toast('Preferences saved. You’re ready to start a session.'); document.dispatchEvent(new Event('prefs-loaded')); } catch (e) { toast(e.message); } };
 $('remove-key').onclick = async () => { try { prefs = await api.saveSettings({ ...prefs, removeKey: true }); syncSettings(); document.dispatchEvent(new Event('prefs-loaded'));toast('OpenAI key removed.'); } catch (e) { toast(e.message); } };
 $('remove-gemini-key').onclick=async()=>{try{prefs=await api.saveSettings({...prefs,removeGeminiKey:true});syncSettings();document.dispatchEvent(new Event('prefs-loaded'));toast('Gemini key removed.');}catch(e){toast(e.message);}};
 api.settings().then(value => { prefs = value; syncSettings(); configureSession(prefs.demo); renderHistory(); document.dispatchEvent(new Event('prefs-loaded')); }).catch(e => toast(e.message));

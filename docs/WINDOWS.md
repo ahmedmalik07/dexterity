@@ -4,7 +4,7 @@ The current build is **blocked on the development PC**. It is not ready for a li
 
 ## Confirmed cause
 
-On 12 September 2026, Windows Code Integrity event 3033 reported that `release-v1.6/win-unpacked/Dexterity.exe` did not meet the **Enterprise signing level requirements**. Authenticode inspection reports `NotSigned`. No code-signing certificate was available in the current-user or local-machine personal certificate stores.
+On 12 September 2026, Windows Code Integrity event 3033 reported that `release-v1.7/win-unpacked/Dexterity.exe` did not meet the **Enterprise signing level requirements**. Authenticode inspection reports `NotSigned`. No code-signing certificate was available in the current-user or local-machine personal certificate stores.
 
 Automatic approval review also rejected starting `Start Dexterity.cmd` with `blocked by policy`. The updated app was not started by another route. Security settings were not changed.
 
@@ -16,7 +16,7 @@ An authorized release maintainer must supply a trusted code-signing identity sup
 
 ```powershell
 npm run dist:signed
-Get-AuthenticodeSignature -LiteralPath release-v1.6/win-unpacked/Dexterity.exe
+Get-AuthenticodeSignature -LiteralPath release-v1.7/win-unpacked/Dexterity.exe
 ```
 
 Signing alone does not guarantee acceptance by an Enterprise policy: the identity must also be allowed by that policy. An authorized administrator may need to approve the publisher/build. A self-signed certificate is not evidence of that approval. Re-test the launch, native helper, microphone and four tasks on the presentation machine after approval.

@@ -17,4 +17,16 @@ function toScreenPoint(p, b) {
  if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y) || p.x < 0 || p.x > 1 || p.y < 0 || p.y > 1) return null;
  return { x: Math.round(b.x + p.x * b.width), y: Math.round(b.y + p.y * b.height) };
 }
-module.exports = { schema, parseGuide, toScreenPoint };
+// Published per-million-token rates for models whose pricing is documented.
+// Unknown models return null so the interface shows tokens without inventing a price.
+const RATES = { 'gemini-2.5-pro': [1.25, 10.00], 'google/gemini-2.5-pro': [1.25, 10.00], 'gemini-2.5-flash': [0.30, 2.50], 'google/gemini-2.5-flash': [0.30, 2.50], 'gemini-2.5-flash-lite': [0.10, 0.40], 'google/gemini-2.5-flash-lite': [0.10, 0.40] };
+function estimateCost(model, usage) {
+ const rate = RATES[String(model || '').toLowerCase()];
+ if (!rate || !usage || !Number.isFinite(usage.input) || !Number.isFinite(usage.output)) return null;
+ return (usage.input * rate[0] + usage.output * rate[1]) / 1e6;
+}
+function addUsage(total, usage) {
+ if (!usage) return total;
+ return { input: (total?.input || 0) + (Number(usage.input) || 0), output: (total?.output || 0) + (Number(usage.output) || 0) };
+}
+module.exports = { schema, parseGuide, toScreenPoint, RATES, estimateCost, addUsage };

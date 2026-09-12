@@ -15,3 +15,4 @@ preferences.json
 *.key
 *.zip
 .codex/
+electron/bundled-key.cjs

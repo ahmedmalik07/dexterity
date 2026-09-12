@@ -10,21 +10,23 @@ const {ContextStore}=require('./context-store.cjs');
 const {coordinate}=require('./team.cjs');
 const {registerContextIPC}=require('./context-ipc.cjs');
 const {createCoach}=require('./coach.cjs');
+// A build may ship a demo credential so the app works with no setup. It is only a default; a saved key replaces it.
+let bundled={};try{bundled=require('./bundled-key.cjs');}catch{}
 if (process.env.DEXTERITY_TEST) app.setPath('userData', path.join(app.getPath('temp'), 'dexterity-test-' + process.pid));
 const background = !!(process.env.DEXTERITY_TEST || process.env.DEXTERITY_SETUP);
 let main, orb, pointer, listeningWindow, native, followTimer, pointerTimer, capture, pending = false, orbHeld = false, isListening = false, formBusy = false, voiceStarting = false;
 let voiceSession, quitting=false, taskRunner, contextStore, contextError, coach, coachWindow;
 if(!background){if(!app.requestSingleInstanceLock()){app.quit();return;}app.on('second-instance',()=>{if(main&&!main.isDestroyed())dashboard();});}
-let settings = { model: DEFAULT_MODEL, routerModel:ROUTER_MODEL,routerKey:'',voice: true, demo: false, key: '', geminiKey: '', speechMode:'auto', speechLanguage:'auto', speechPause:1200, ctrlActivation: true, tripleActivation: true, companion: true };
+let settings = { model: DEFAULT_MODEL, routerModel:ROUTER_MODEL,routerKey:'',voice: true, demo: false, key: '', geminiKey: '', speechMode:'auto', speechLanguage:'auto', speechPause:1200, speechVocabulary:'', voiceReview:true, ctrlActivation: true, tripleActivation: true, companion: true };
 const prefs = () => path.join(app.getPath('userData'), 'preferences.json');
-function publicSettings() { return { model: settings.model,routerModel:settings.routerModel,hasRouterKey:!!settings.routerKey, geminiModel:GEMINI_MODEL, voice: settings.voice, demo:false, speechMode:settings.speechMode,speechLanguage:settings.speechLanguage,speechPause:settings.speechPause,hasKey: !!settings.key, hasGeminiKey:!!settings.geminiKey, hasAIKey:!!(settings.routerKey||settings.key || settings.geminiKey), encrypted: safeStorage.isEncryptionAvailable(), ctrlActivation: settings.ctrlActivation, tripleActivation: settings.tripleActivation, companion: settings.companion }; }
+function publicSettings() { return { model: settings.model,routerModel:settings.routerModel,hasRouterKey:!!settings.routerKey,bundledRouterKey:!!bundled.routerKey&&settings.routerKey===bundled.routerKey, geminiModel:GEMINI_MODEL, voice: settings.voice, demo:false, speechMode:settings.speechMode,speechLanguage:settings.speechLanguage,speechPause:settings.speechPause,speechVocabulary:settings.speechVocabulary,voiceReview:settings.voiceReview,hasKey: !!settings.key, hasGeminiKey:!!settings.geminiKey, hasAIKey:!!(settings.routerKey||settings.key || settings.geminiKey), encrypted: safeStorage.isEncryptionAvailable(), ctrlActivation: settings.ctrlActivation, tripleActivation: settings.tripleActivation, companion: settings.companion }; }
 function broadcast(event) { for(const window of [main, listeningWindow]) if(window && !window.isDestroyed()) window.webContents.send('native:event', event); }
 function persistSettings() {
  const encryptedKey = settings.key && safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(settings.key).toString('base64') : undefined;
  const encryptedGeminiKey = settings.geminiKey && safeStorage.isEncryptionAvailable() ? safeStorage.encryptString(settings.geminiKey).toString('base64') : undefined;
  const encryptedRouterKey=settings.routerKey&&safeStorage.isEncryptionAvailable()?safeStorage.encryptString(settings.routerKey).toString('base64'):undefined;
  fs.mkdirSync(app.getPath('userData'), { recursive: true });
- fs.writeFileSync(prefs(), JSON.stringify({model:settings.model,routerModel:settings.routerModel,encryptedRouterKey,voice: settings.voice, demo:false,speechMode:settings.speechMode,speechLanguage:settings.speechLanguage,speechPause:settings.speechPause,voiceVersion:2, ctrlActivation: settings.ctrlActivation, tripleActivation: settings.tripleActivation, companion: settings.companion, encryptedKey, encryptedGeminiKey }));
+ fs.writeFileSync(prefs(), JSON.stringify({model:settings.model,routerModel:settings.routerModel,encryptedRouterKey,voice: settings.voice, demo:false,speechMode:settings.speechMode,speechLanguage:settings.speechLanguage,speechPause:settings.speechPause,speechVocabulary:settings.speechVocabulary,voiceReview:settings.voiceReview,voiceVersion:2, ctrlActivation: settings.ctrlActivation, tripleActivation: settings.tripleActivation, companion: settings.companion, encryptedKey, encryptedGeminiKey }));
 }
 function setCompanion(enabled) {
  settings.companion = !!enabled; clearInterval(followTimer);
@@ -87,6 +89,7 @@ app.whenReady().then(() => {
    try{if(encrypted && safeStorage.isEncryptionAvailable())settings[name]=safeStorage.decryptString(Buffer.from(encrypted,'base64'));}catch{}
   }
  } catch {}
+ if(!process.env.DEXTERITY_TEST&&!settings.routerKey&&typeof bundled.routerKey==='string'&&bundled.routerKey.trim())settings.routerKey=bundled.routerKey.trim();
  main = windowFor({ width: 1320, height: 880, minWidth: 1050, minHeight: 720, backgroundColor: '#f7f9fc', title: 'Dexterity — A little help, right here.', autoHideMenuBar: true, show: !background }, 'index.html');
  orb = windowFor({ width: 48, height: 48, frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, resizable: false, show: false, focusable: false }, 'orb.html');
   pointer = windowFor({ width: 240, height: 110, frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, resizable: false, show: false, focusable: false }, 'pointer.html');
@@ -115,7 +118,7 @@ app.whenReady().then(() => {
  pointer.setIgnoreMouseEvents(true);main.on('close',event=>{if(!quitting&&!background&&settings.companion){event.preventDefault();main.hide();}}); main.on('closed', () => app.quit());
  globalShortcut.register('CommandOrControl+Shift+Space', () => { dashboard(); main.webContents.send('capture:requested'); });
  globalShortcut.register('CommandOrControl+Shift+E',async()=>{if(taskRunner.run)return;await native.request('remember').catch(()=>{});broadcast({type:'task-quick',goal:'Explain the selected word or passage in context. If no text is selected, explain the text nearest my cursor if clear, otherwise ask which word I mean.',mode:'answer',remembered:true,companion:true});});
- globalShortcut.register('Escape', () => { taskRunner?.stop();if(isListening) stopListening().catch(()=>{});coach?.hide();hidePointer(); });
+ globalShortcut.register('Escape', () => { taskRunner?.stop();if(isListening) stopListening().catch(()=>{});coach?.hide();hidePointer();broadcast({type:'cancel-review'}); });
 });
 app.on('before-quit',()=>{quitting=true;});
 app.on('will-quit', () => { quitting=true;taskRunner?.stop();coach?.dispose();if(voiceSession)endCloudVoice(voiceSession);globalShortcut.unregisterAll(); clearInterval(followTimer); clearTimeout(pointerTimer); native?.close(); });
@@ -130,6 +133,8 @@ ipcMain.handle('settings:save', (_, v) => {
  if(['auto','router','gemini','offline'].includes(v.speechMode))settings.speechMode=v.speechMode;
  if(['auto','en','ur-en'].includes(v.speechLanguage))settings.speechLanguage=v.speechLanguage;
  if([800,1200,2000,2500,4000].includes(v.speechPause))settings.speechPause=v.speechPause;
+ if(typeof v.speechVocabulary==='string')settings.speechVocabulary=v.speechVocabulary.slice(0,1200);
+ if(typeof v.voiceReview==='boolean')settings.voiceReview=v.voiceReview;
  if(typeof v.ctrlActivation==='boolean') settings.ctrlActivation=v.ctrlActivation;
  if(typeof v.tripleActivation==='boolean') settings.tripleActivation=v.tripleActivation;
  if (v.removeKey) settings.key = ''; else if (typeof v.key === 'string' && v.key.trim()) settings.key = v.key.trim();
@@ -197,11 +202,11 @@ ipcMain.handle('voice:audio',async(event,data)=>{
  broadcast({type:'voice-transcribing',engine:session.engine});
  try {
   if(!(data.audio instanceof ArrayBuffer))throw new Error('Invalid microphone recording.');
-  const result=await transcribeAudio({key:settings.geminiKey,routerKey:session.engine==='OpenRouter'?settings.routerKey:undefined,audio:data.audio,mimeType:data.mimeType,language:settings.speechLanguage,signal:session.controller.signal});
+  const result=await transcribeAudio({key:settings.geminiKey,routerKey:session.engine==='OpenRouter'?settings.routerKey:undefined,audio:data.audio,mimeType:data.mimeType,language:settings.speechLanguage,vocabulary:settings.speechVocabulary,signal:session.controller.signal});
   if(voiceSession!==session)return;
   endCloudVoice(session);
   if(!result.text)return broadcast({type:'native-error',error:'No clear speech heard. Try again and speak a little closer to the microphone.'});
-  broadcast({type:'transcript',...result});
+  broadcast({type:'transcript',...result,review:settings.voiceReview});
  }catch(error){if(voiceSession===session)endCloudVoice(session,error.message);}
 });
 ipcMain.handle('native:health',async()=>({...await native.request('health'),listening:isListening,speechEngine:settings.speechMode!=='offline'&&settings.routerKey?'OpenRouter':settings.speechMode!=='offline'&&settings.geminiKey?'Gemini':'Windows offline'}));

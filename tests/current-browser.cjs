@@ -15,7 +15,7 @@ const assert=require('node:assert/strict'),http=require('node:http'),path=requir
  try{
   const original=await browser.newPage();await original.goto(origin+'/start');
   const env={...process.env,DEXTERITY_TEST:'1'};delete env.ELECTRON_RUN_AS_NODE;
-  app=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.6/win-unpacked/Dexterity.exe')}:{}),args:process.env.DEXTERITY_PACKAGED?[]:['.'],env});
+  app=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.7/win-unpacked/Dexterity.exe')}:{}),args:process.env.DEXTERITY_PACKAGED?[]:['.'],env});
   await app.firstWindow();let page;
   for(let i=0;i<100;i++){page=app.windows().find(p=>p.url().endsWith('/index.html'));if(page)break;await new Promise(r=>setTimeout(r,100));}
   await page.waitForFunction(()=>typeof prefs!=='undefined'&&prefs);

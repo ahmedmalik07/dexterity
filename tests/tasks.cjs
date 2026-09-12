@@ -1,7 +1,7 @@
 const{_electron:electron}=require('@playwright/test');const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 (async()=>{
  const env={...process.env,DEXTERITY_TEST:'1'};delete env.ELECTRON_RUN_AS_NODE;
- const desktop=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.6/win-unpacked/Dexterity.exe')}:{}),args:[...(process.env.DEXTERITY_PACKAGED?[]:['.'])],env});
+ const desktop=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.7/win-unpacked/Dexterity.exe')}:{}),args:[...(process.env.DEXTERITY_PACKAGED?[]:['.'])],env});
  try{
   await desktop.firstWindow();let page;
   for(let i=0;i<100;i++){page=desktop.windows().find(p=>p.url().endsWith('/index.html'));if(page)break;await new Promise(r=>setTimeout(r,100));}
@@ -34,9 +34,11 @@ const{_electron:electron}=require('@playwright/test');const assert=require('node
   await page.locator('#task-goal').fill('Fill this form with my saved name and email. Submit after I review it.');
   await page.locator('#task-send').click();
   try{await page.locator('#task-review').waitFor({state:'visible',timeout:60000});}catch(e){console.log(await page.locator('#task-status').innerText(),await page.locator('#task-answer').innerText(),JSON.stringify(await desktop.evaluate(()=>globalThis.taskProbe)));throw e;}
-  assert.match(await page.locator('#task-review-fields').innerText(),/Alex Builder/);assert.equal(await page.locator('#task-log li').count(),2);
+  assert.match(await page.locator('#task-review-fields').innerText(),/Alex Builder/);assert.equal(await page.locator('#task-log li[data-kind="action"]').count(),2);
   await page.locator('#task-approve').click();await page.getByText('The local practice form shows Submitted: Alex Builder.',{exact:true}).waitFor({timeout:30000});
-  await page.waitForFunction(()=>!taskRunning);assert.equal(await page.locator('#task-log li').count(),3);
+  await page.waitForFunction(()=>!taskRunning);assert.equal(await page.locator('#task-log li[data-kind="action"]').count(),3);
+  assert.equal(await page.locator('#task-log li[data-kind="check"].ledger-pass').count(),1,'the completion check is written to the visible log');
+  assert.match(await page.locator('#task-meter').innerText(),/model requests/);
   fs.mkdirSync('test-results',{recursive:true});await page.evaluate(()=>window.scrollTo(0,0));await page.screenshot({path:'test-results/autonomous-task.png',fullPage:true});assert.deepEqual(errors,[]);
   console.log('PASS: imported profile → coordinator → operator with saved values → real native form changes → review → submission → verified confirmation.');
  }finally{await desktop.close();}

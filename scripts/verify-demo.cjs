@@ -14,7 +14,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  try{
   browser=await chromium.launch({channel:'chrome',headless:false});const original=await browser.newPage();await original.goto(origin+'/start');
   const env={...process.env,DEXTERITY_SETUP:'1'};delete env.DEXTERITY_TEST;delete env.ELECTRON_RUN_AS_NODE;
-  desktop=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.6/win-unpacked/Dexterity.exe')}:{}),args:[...(process.env.DEXTERITY_PACKAGED?[]:['.']),'--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+audio],env});
+  desktop=await electron.launch({...(process.env.DEXTERITY_PACKAGED?{executablePath:path.resolve('release-v1.7/win-unpacked/Dexterity.exe')}:{}),args:[...(process.env.DEXTERITY_PACKAGED?[]:['.']),'--use-fake-device-for-media-stream','--use-file-for-fake-audio-capture='+audio],env});
   await desktop.firstWindow();for(let i=0;i<100;i++){page=desktop.windows().find(p=>p.url().endsWith('/index.html'));if(page)break;await new Promise(r=>setTimeout(r,100));}await page.waitForFunction(()=>typeof prefs!=='undefined'&&prefs);
   assert.ok(await page.evaluate(()=>prefs.hasRouterKey),'Configure OpenRouter in the app before live rehearsal.');
   await page.evaluate(()=>{prefs.voice=false;document.getElementById('task-memory').checked=false;document.getElementById('task-screen').checked=false;});
