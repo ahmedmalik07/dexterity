@@ -2,6 +2,16 @@
 
 A little AI buddy next to your cursor. Ask about what you see, learn an app one step at a time, and get a visible marker showing where to click. Version 1.6 adds floating lessons, a cursor companion, local neural speech detection and OpenRouter for screen understanding and voice.
 
+## Use it now
+
+1. Open `release-v1.6/win-unpacked/Dexterity.exe`. Keep the surrounding files with it. Configure your AI connection once in **Settings** and leave **Use my screen** enabled for screen tasks.
+2. Focus the app you want help with. Hold **Ctrl for 3 seconds**, wait for Listening, then say your goal.
+3. Pause. **Transcription → task starts automatically → progress/result beside your cursor.** You do not reopen the dashboard or press Run to start a voice task.
+
+Try: **“Fill this form with name Alex Builder and email alex@example.test.”** For teaching, say **“Teach me how to use this screen. Start with one step.”** Use the local practice form for the first automation demo; see [the demo script](DEMO.md).
+
+The dashboard opens for explicit approval of protected actions. **Escape** stops the current task. The eight-action limit and stop after two unchanged screen states remain active.
+
 OpenRouter uses `google/gemini-2.5-flash` for screen guidance and `google/gemini-2.5-flash-lite` for transcription. Without an OpenRouter key, direct OpenAI/Gemini connections remain available. Each response shows its provider. This is a Windows hackathon prototype; DaVinci Resolve guidance uses screenshots and has not been comprehensively validated across Resolve versions.
 
 ## Current status and demo
@@ -53,7 +63,7 @@ Teach mode never clicks for you. Markers are visual estimates based on a recent 
 4. After voice transcription, Dexterity starts automatically beside the cursor. It captures the target app, reads selected text and visible controls, and responds or starts working. There is no separate Capture → Ask sequence in this flow.
 5. Continue in the same conversation. Say “explain that more simply” or give the missing information. **New conversation** clears the recent context.
 
-If the wrong app is selected, refresh the **Work in** list and choose the exact window. For websites, choose **Open task browser**, navigate to your site and sign in there. This opens Chrome or Edge with accessibility support enabled in a separate browser profile. Your normal browser may not expose its controls.
+For voice, focus the target app before activating the microphone: Dexterity remembers that app. The dashboard's **Work in** selection applies to typed tasks; refresh that list when a typed task targets the wrong window. For websites, choose **Open task browser**, navigate to your site and sign in there. This opens Chrome or Edge with accessibility support enabled in a separate browser profile. Your normal browser may not expose its controls.
 
 | What you need | Mode | Try saying or typing |
 | --- | --- | --- |

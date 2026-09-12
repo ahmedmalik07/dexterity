@@ -2,6 +2,8 @@
 
 Status: 12 September 2026, version 1.6. This is a working Windows prototype. Voice tasks now start automatically after transcription, with no Run step. The eight-action limit and mandatory approval checks remain. It does not add continuous observation or a Mac version.
 
+**The flow to present:** focus your app → hold Ctrl for 3 seconds → speak → pause → Dexterity works beside the cursor. Only a protected action needs an approval click. Set up the practice form before presenting so you can lead with the voice flow.
+
 ## Before you present
 
 1. Open `release-v1.6/win-unpacked/Dexterity.exe`. On the development PC, the full path is `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`. Keep the entire `win-unpacked` folder together. This app-folder build passed the packaged voice and form tests.
@@ -32,8 +34,8 @@ Triple left-click also activates voice, but those clicks still reach the underly
 ### 1:00–2:15 — Complete a real local task
 
 1. Choose **Try real automation** under **How to use Dexterity for everyday work**. This opens **Dexterity practice form**, selects **Do it**, enables screen use, selects the form, and inserts a suggested task.
-2. Keep this task: “Fill this practice form with name Alex Builder and email alex@example.test. Submit the registration after I review it.” For a typed demonstration, press **Start task**. To demonstrate voice automation instead, close the dashboard, focus the practice form, hold Ctrl for three seconds, and say that task. It starts automatically against the remembered form; only protected submission requires your approval.
-3. Show the plan, name and email changes, and action log. Say: “It reads the app again after each action. A coordinator plans, one operator acts, and a verifier checks the result.”
+2. Close the dashboard, focus the practice form, and hold Ctrl for three seconds. Say: “Fill this practice form with name Alex Builder and email alex@example.test. Submit the registration after I review it.” Pause. The task starts automatically against the remembered form.
+3. Show the name and email changing in the actual form and the companion's progress. Say: “It reads the app again after each action. A coordinator plans, one operator acts, and a verifier checks the result.” The detailed plan and action log are in the dashboard when it opens for review.
 4. At **Approve this action**, show the filled values and the Submit registration target. Nothing has submitted yet. Check the details, then click **Approve this action & continue** before the review expires.
 5. Show `Submitted: Alex Builder` in the local form and Dexterity’s completion response. This changes a real Windows form, but sends no registration to a website.
 
@@ -43,8 +45,8 @@ Do not claim the stall detector was demonstrated by this successful form run. It
 
 ### 2:15–3:00 — Teach beside the cursor
 
-1. Finish the form task. Leave the practice form selected in **Work in**, choose **Teach me**, and keep **Use my screen** on.
-2. Type: “Explain this form and show me where the Full name field is. Give me only the first step.” Click **Teach me →**.
+1. Finish the form task. Keep **Use my screen** on, close the dashboard, and focus the practice form.
+2. Hold Ctrl for three seconds. Say: “Teach me how to fill this form. Show me where the Full name field is. Give me only the first step.” Pause; the teaching request starts automatically.
 3. Show the floating lesson. If the model supplies a valid visible target, use **Show me where** to display the marker. A marker is not guaranteed for every response; do not describe one that is absent.
 4. Follow the instruction yourself, then click **I did it →** to request the next screen check. Teaching points and explains; it does not click for you.
 
@@ -63,7 +65,7 @@ Close with: “The useful part is staying in the app I’m working in, with cont
 | Wrong words or background speech | Press Escape to stop; completed actions remain. Cancel before transcription finishes when possible. Repeat the corrected goal or use typed input. |
 | Voice does not activate | Click **Talk to Dexterity** or the buddy. Check microphone access in Settings. Do not spend the presentation repeatedly trying a shortcut. |
 | Provider/network/credit error | Show the error honestly. Check the connection before another attempt. Generated test results or a rehearsal recording must be labeled as such; there is no offline AI demo mode. |
-| Wrong target app | Stop, refresh **Work in**, select the exact window, and start a new request. |
+| Wrong target app | Stop. For voice, focus the correct app before activating the microphone again. For typed tasks, refresh **Work in** and select the exact window. |
 | Two unchanged actions or eight-action limit | Read the handoff and action log. Inspect the app, then give a smaller new goal. The app does not silently resume. |
 | Approval expires or a reviewed field changes | Start again to read the current state, then review the new action. |
 | No teaching marker | Use the written instruction. Reframe the question around one visible control; do not claim exact pointing is available everywhere. |

@@ -37,6 +37,15 @@ flowchart TD
 
 After transcription, the renderer starts a companion task against the app remembered at voice activation. It does not open the dashboard or require Run. The recorder and transcription provider pipeline are unchanged. Recognized cancel/stop commands start no task; manual form-field dictation keeps its existing field-editing flow. The dashboard opens when a running task needs explicit action approval. The runner checks the action count before execution; native code independently enforces the protected-control review rule.
 
+| Voice task stage | Visible behavior |
+| --- | --- |
+| Activated recording and transcription | Small listening surface; microphone stops before transcription. |
+| Recognized task starts | Companion progress; no dashboard opening or second submission. |
+| Protected action | Dashboard shows the exact action for explicit approval. |
+| Completion, blocker, or action limit | Companion result or handoff; no silent task restart. |
+
+Voice uses the window remembered at activation. Typed tasks may use the dashboard's explicit window selection. The screen-sharing preference remains respected in both flows; automatic voice startup does not turn it on when disabled.
+
 ## Roles and contracts
 
 | Component | Implementation | Responsibility |
