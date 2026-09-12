@@ -29,7 +29,7 @@ function persistSettings() {
 function setCompanion(enabled) {
  settings.companion = !!enabled; clearInterval(followTimer);
  if(!enabled) { orb.hide(); return false; }
- const move = () => { if(orbHeld || isListening) return; const p=screen.getCursorScreenPoint(), b=screen.getDisplayNearestPoint(p).workArea; const current=orb.getBounds(); if(p.x>=current.x && p.x<=current.x+68 && p.y>=current.y && p.y<=current.y+68) return; orb.setPosition(Math.max(b.x,Math.min(p.x+30,b.x+b.width-68)),Math.max(b.y,Math.min(p.y+30,b.y+b.height-68))); };
+ const move = () => { if(orbHeld || isListening) return; const p=screen.getCursorScreenPoint(), b=screen.getDisplayNearestPoint(p).workArea; const current=orb.getBounds(); if(p.x>=current.x && p.x<=current.x+48 && p.y>=current.y && p.y<=current.y+48) return; orb.setPosition(Math.max(b.x,Math.min(p.x+18,b.x+b.width-48)),Math.max(b.y,Math.min(p.y+18,b.y+b.height-48))); };
  move(); orb.showInactive(); followTimer=setInterval(move,120); return true;
 }
 async function startListening() {
@@ -88,10 +88,10 @@ app.whenReady().then(() => {
   }
  } catch {}
  main = windowFor({ width: 1320, height: 880, minWidth: 1050, minHeight: 720, backgroundColor: '#f7f9fc', title: 'Dexterity — A little help, right here.', autoHideMenuBar: true, show: !background }, 'index.html');
- orb = windowFor({ width: 68, height: 68, frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, resizable: false, show: false, focusable: false }, 'orb.html');
+ orb = windowFor({ width: 48, height: 48, frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, resizable: false, show: false, focusable: false }, 'orb.html');
   pointer = windowFor({ width: 240, height: 110, frame: false, transparent: true, alwaysOnTop: true, skipTaskbar: true, resizable: false, show: false, focusable: false }, 'pointer.html');
  listeningWindow = windowFor({ width:380, height:260, frame:false, transparent:true, alwaysOnTop:true, skipTaskbar:true, resizable:false, show:false, focusable:false }, 'listening.html');
- coachWindow=windowFor({width:340,height:310,frame:false,transparent:true,alwaysOnTop:true,skipTaskbar:true,resizable:false,show:false},'coach.html');
+ coachWindow=windowFor({width:340,height:260,frame:false,transparent:true,alwaysOnTop:true,skipTaskbar:true,resizable:false,show:false},'coach.html');
  main.webContents.session.setPermissionRequestHandler((contents,permission,callback,details)=>callback(contents===listeningWindow.webContents && permission==='media' && !details.mediaTypes?.includes('video')));
  main.webContents.session.setPermissionCheckHandler((contents,permission,origin,details)=>contents===listeningWindow.webContents && permission==='media' && details.mediaType!=='video');
  native = new NativeBridge(app);
@@ -114,7 +114,7 @@ app.whenReady().then(() => {
  if(!background) orb.webContents.once('did-finish-load',()=>setCompanion(settings.companion));
  pointer.setIgnoreMouseEvents(true);main.on('close',event=>{if(!quitting&&!background&&settings.companion){event.preventDefault();main.hide();}}); main.on('closed', () => app.quit());
  globalShortcut.register('CommandOrControl+Shift+Space', () => { dashboard(); main.webContents.send('capture:requested'); });
- globalShortcut.register('CommandOrControl+Shift+E',async()=>{if(taskRunner.run)return;await native.request('remember').catch(()=>{});broadcast({type:'task-quick',goal:'Explain the selected word or passage in context. If no text is selected, explain the text nearest my cursor if clear, otherwise ask which word I mean.',mode:'answer',remembered:true});});
+ globalShortcut.register('CommandOrControl+Shift+E',async()=>{if(taskRunner.run)return;await native.request('remember').catch(()=>{});broadcast({type:'task-quick',goal:'Explain the selected word or passage in context. If no text is selected, explain the text nearest my cursor if clear, otherwise ask which word I mean.',mode:'answer',remembered:true,companion:true});});
  globalShortcut.register('Escape', () => { taskRunner?.stop();if(isListening) stopListening().catch(()=>{});coach?.hide();hidePointer(); });
 });
 app.on('before-quit',()=>{quitting=true;});
@@ -207,23 +207,18 @@ ipcMain.handle('voice:audio',async(event,data)=>{
 ipcMain.handle('native:health',async()=>({...await native.request('health'),listening:isListening,speechEngine:settings.speechMode!=='offline'&&settings.routerKey?'OpenRouter':settings.speechMode!=='offline'&&settings.geminiKey?'Gemini':'Windows offline'}));
 ipcMain.handle('form:practice',()=>native.practice());
 ipcMain.handle('form:windows',()=>native.request('windows'));
-async function openFormBrowser(input){
- let url='about:blank';
+async function openFormBrowser(input,windowId=''){
+ let url='https://www.google.com/';
  if(typeof input==='string' && input.trim()) {
   let parsed;try{parsed=new URL(input.trim());}catch{throw new Error('Enter a complete website address starting with https://.');}
   if(!['https:','http:'].includes(parsed.protocol) || parsed.username || parsed.password)throw new Error('Use an http or https website address without embedded credentials.');
   url=parsed.href;
  }
- const roots=[process.env.ProgramFiles,process.env['ProgramFiles(x86)'],process.env.LOCALAPPDATA].filter(Boolean);
- const candidates=roots.flatMap(root=>[path.join(root,'Google/Chrome/Application/chrome.exe'),path.join(root,'Microsoft/Edge/Application/msedge.exe')]);
- const browser=candidates.find(candidate=>fs.existsSync(candidate));
- if(!browser)throw new Error('Install Chrome or Edge to use the form browser.');
- const {spawn}=require('node:child_process');
- const child=spawn(browser,['--force-renderer-accessibility','--no-first-run','--no-default-browser-check','--user-data-dir='+path.join(app.getPath('userData'),'form-browser'),'--new-window',url],{detached:true,stdio:'ignore',windowsHide:false});
- await new Promise((resolve,reject)=>{child.once('spawn',resolve);child.once('error',()=>reject(new Error('The form browser could not open.')));});
- child.unref();return true;
+ main.hide();orb.hide();coach?.hide();
+ try{await new Promise(resolve=>setTimeout(resolve,250));return await native.request('browser-url',{url,windowId:String(windowId||'')});}
+ catch(error){dashboard();throw error;}
 }
-ipcMain.handle('form:browser',(_,input)=>{if(taskRunner?.run)throw new Error('Stop the current task first.');return openFormBrowser(input);});
+ipcMain.handle('form:browser',(_,input)=>{if(taskRunner?.run)throw new Error('Stop the current task first.');return typeof input==='string'?openFormBrowser(input):openFormBrowser(input?.url,input?.windowId);});
 ipcMain.handle('speech:settings',()=>shell.openExternal('ms-settings:privacy-microphone'));
 ipcMain.handle('form:inspect',async (_,options={})=>{
  if(taskRunner?.run)throw new Error('Stop the current task first.');
@@ -293,7 +288,7 @@ async function readTaskContext(run){
 async function performTaskAction(action,context,confirmed){
  if(taskRunner.run?.controller.signal.aborted||!taskRunner.run)throw new Error('Stopped.');
  main.hide();orb.hide();
- if(action.type==='open_url') {await openFormBrowser(action.value);await new Promise(resolve=>setTimeout(resolve,1500));return;}
+ if(action.type==='open_url') {const result=await openFormBrowser(action.value,context.windowId);await new Promise(resolve=>setTimeout(resolve,1500));return result;}
  await native.request('act',{token:context.token,...action,confirmed});
  await new Promise(resolve=>setTimeout(resolve,450));
 }

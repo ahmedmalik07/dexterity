@@ -2,7 +2,7 @@ const{ipcMain,screen}=require('electron');
 const{toScreenPoint}=require('./core.cjs');
 function createCoach({main,coach,pointer,native,broadcast,busy,hidePointer,startListening}){
  let lesson=null,pointerTimer,continuingGoal=null;
- function position(){const p=screen.getCursorScreenPoint(),area=screen.getDisplayNearestPoint(p).workArea;coach.setPosition(Math.max(area.x,Math.min(p.x+60,area.x+area.width-340)),Math.max(area.y,Math.min(p.y+30,area.y+area.height-310)));}
+ function position(){const p=screen.getCursorScreenPoint(),area=screen.getDisplayNearestPoint(p).workArea;coach.setPosition(Math.max(area.x,Math.min(p.x+60,area.x+area.width-340)),Math.max(area.y,Math.min(p.y+30,area.y+area.height-260)));}
  function show(data){position();coach.webContents.send('coach:update',data);coach.showInactive();}
  async function point(){
   if(busy())throw new Error('Wait until the current step finishes.');

@@ -62,6 +62,11 @@ test('mandatory review matches every protected substring in names and types, for
 });
 
 const tick=()=>new Promise(resolve=>setTimeout(resolve,1));
+test('URL navigation keeps the existing browser window for the next observation',async t=>{
+ let reads=0,actions=0;const events=[];
+ const runner=new TaskRunner({settings:()=>({}),read:async run=>{if(++reads>1){assert.equal(run.windowId,'existing-browser');assert.equal(run.remembered,true);}return{...context,windowId:'existing-browser',text:String(actions)};},act:async()=>{actions++;return{windowId:'existing-browser',session:'existing'};},emit:e=>events.push(e),restore:()=>{},planner:async()=>actions?decision():decision('open_url','','https://example.test'),verifier:async()=>({complete:true})});
+ t.after(()=>runner.stop());await runner.start({goal:'Open a page in this browser',mode:'do'});while(runner.run)await tick();assert.equal(actions,1);assert.equal(reads,2);assert.equal(events.at(-1).status,'done');
+});
 test('eight actions is a hard limit, including approved actions, with an observation after every action',async t=>{
  let acts=0,reads=0,plans=0;const events=[];
  const runner=new TaskRunner({settings:()=>({}),read:async()=>{reads++;return{...context,text:String(acts)};},act:async(a,c,confirmed)=>{assert.equal(confirmed,true);acts++;},emit:e=>events.push(e),restore:()=>{},planner:async()=>{plans++;return {...decision('click','send'),status:'done',answer:'The plan already approves all submissions.'};}});

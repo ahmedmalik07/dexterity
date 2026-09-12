@@ -1,8 +1,32 @@
+![Dexterity — a little help, right where you work](docs/images/hero.svg)
+
 # Dexterity
+
+**Your screen. Your session. A little AI buddy beside your cursor.**
+
+[Three-minute demo](DEMO.md) · [Architecture](ARCHITECTURE.md) · [Windows build status](docs/WINDOWS.md)
+
+| Understand | Learn | Act |
+| --- | --- | --- |
+| Highlight a word and press **Ctrl + Shift + E**. | Ask for one step and a marker showing where to click. | Delegate a short form task in your existing browser session. |
+
+## A look inside
+
+These are **current-interface previews with fictional sample data**, rendered without running the desktop agent. They show the design, not proof of a completed live task.
+
+![Dexterity workspace with Answer, Teach me and Do it modes](docs/images/workspace.png)
+
+<table><tr><td width="65%"><strong>Bring your context with you</strong><br/>Import, review and export personal context. Enabled memories can help with relevant tasks.<br/><img src="docs/images/context.png" alt="Local context library with fictional preferences"/></td><td width="35%"><strong>Answers beside your cursor</strong><br/>A compact mint bubble keeps the explanation close to what you are working on.<br/><img src="docs/images/companion.png" width="340" alt="Mint companion bubble with a sample word definition"/></td></tr></table>
 
 A little AI buddy next to your cursor. Ask about what you see, learn an app one step at a time, and get a visible marker showing where to click. Version 1.6 adds floating lessons, a cursor companion, local neural speech detection and OpenRouter for screen understanding and voice.
 
-## Use it now
+## Current launch status
+
+The current unsigned EXE was rebuilt, but **Windows Application Control now blocks it on this PC**. An attempt to start the source launcher was also rejected by automatic approval review. The updated app is not running here. Do not treat the older passing packaged tests as certification of this latest build. A signed/approved build is needed for the local EXE demo; no security settings were changed.
+
+The existing-session browser fix and highlighted-text companion flow passed source integration checks. Live OpenRouter passed voice answers, navigation in the same browser session, and visual teaching. Live form filling reached the requested values but asked for permission in text instead of the approval UI; its prompt was corrected, and that final handoff still needs live re-verification. See [DEMO.md](DEMO.md).
+
+## Use it when the build is permitted to launch
 
 1. Open `release-v1.6/win-unpacked/Dexterity.exe`. Keep the surrounding files with it. Configure your AI connection once in **Settings** and leave **Use my screen** enabled for screen tasks.
 2. Focus the app you want help with. Hold **Ctrl for 3 seconds**, wait for Listening, then say your goal.
@@ -11,6 +35,8 @@ A little AI buddy next to your cursor. Ask about what you see, learn an app one 
 Try: **“Fill this form with name Alex Builder and email alex@example.test.”** For teaching, say **“Teach me how to use this screen. Start with one step.”** Use the local practice form for the first automation demo; see [the demo script](DEMO.md).
 
 The dashboard opens for explicit approval of protected actions. **Escape** stops the current task. The eight-action limit and stop after two unchanged screen states remain active.
+
+The companion is a small mint-and-dark-green cursor with compact pale-mint speech bubbles. Teaching uses an arrow and short label at the discussed control. Highlight a word or passage in your browser and press **Ctrl + Shift + E** to see its meaning beside the cursor.
 
 OpenRouter uses `google/gemini-2.5-flash` for screen guidance and `google/gemini-2.5-flash-lite` for transcription. Without an OpenRouter key, direct OpenAI/Gemini connections remain available. Each response shows its provider. This is a Windows hackathon prototype; DaVinci Resolve guidance uses screenshots and has not been comprehensively validated across Resolve versions.
 
@@ -24,9 +50,9 @@ The main remaining work is a live rehearsal with your microphone/provider, signe
 
 ## Start and call Dexterity
 
-**Tested app-folder build:** open `release-v1.6/win-unpacked/Dexterity.exe` and keep the whole `win-unpacked` folder together. This build does not need a separate Node installation. On the development PC it is at `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`.
+**App-folder build (latest launch blocked on this PC):** open `release-v1.6/win-unpacked/Dexterity.exe` and keep the whole `win-unpacked` folder together. This build does not need a separate Node installation. On the development PC it is at `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`.
 
-**Single-file portable build:** `release-v1.6/Dexterity-1.6.0.exe` is the earlier build, before automatic voice startup was restored. Windows Application Control blocked that wrapper on this PC. The successful packaged tests used the app-folder EXE. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
+**Single-file portable build:** `release-v1.6/Dexterity-1.6.0.exe` is the earlier build, before automatic voice startup was restored. Windows Application Control blocked that wrapper on this PC. Earlier successful packaged tests used the app-folder EXE; the newest rebuild is also blocked on this PC. These local build outputs are ignored by Git; cloning the repository does not download an EXE.
 
 **From source:** on Windows, install Node.js 22.12 or newer, then run:
 
@@ -63,7 +89,7 @@ Teach mode never clicks for you. Markers are visual estimates based on a recent 
 4. After voice transcription, Dexterity starts automatically beside the cursor. It captures the target app, reads selected text and visible controls, and responds or starts working. There is no separate Capture → Ask sequence in this flow.
 5. Continue in the same conversation. Say “explain that more simply” or give the missing information. **New conversation** clears the recent context.
 
-For voice, focus the target app before activating the microphone: Dexterity remembers that app. The dashboard's **Work in** selection applies to typed tasks; refresh that list when a typed task targets the wrong window. For websites, choose **Open task browser**, navigate to your site and sign in there. This opens Chrome or Edge with accessibility support enabled in a separate browser profile. Your normal browser may not expose its controls.
+For voice, focus the target app before activating the microphone: Dexterity remembers that app. The dashboard's **Work in** selection applies to typed tasks; refresh that list when a typed task targets the wrong window. Use the browser window where you are already signed in. **Open a tab in my browser** and AI `open_url` actions open a tab in that exact window and keep its profile/session. Dexterity no longer launches a dedicated or guest profile. It briefly waits for browser accessibility to become available; unsupported pages still need your help. If you are looking at an old separate-profile window from an earlier build, focus your normal signed-in window instead.
 
 | What you need | Mode | Try saying or typing |
 | --- | --- | --- |
@@ -119,7 +145,7 @@ Open **My context → Open data folder** to inspect the location. In a normal Wi
 | API keys | Encrypted values in `preferences.json`, separate from exported context. |
 | App preferences | `preferences.json`; non-secret preferences are ordinary JSON. |
 | Screenshots and microphone audio | Kept in app memory for the current session/request; never written into the context library or task records. Recent conversation stays in memory unless task-history saving is enabled. |
-| Dedicated task browser | Its separate browser profile under the app data folder retains ordinary browser data such as cookies and sign-in sessions. |
+| Current browser session | Cookies, passwords and sign-in sessions remain in your existing browser profile. Dexterity does not copy or import them. The old `form-browser` directory may remain from earlier builds, but is no longer used to launch a browser. |
 | Exported context | Readable JSON/Markdown at the destination you select. No automatic cloud upload. |
 
 The vault requires the original Windows/Electron profile key. Copying the encrypted file alone to another PC is not a portable backup; use Export instead. If a vault cannot be decrypted, the app reports the error and does not overwrite it. Local encryption does not protect against another process already running with access to the same user profile. Provider requests still leave this PC: selected memories, task text and recent conversation, plus screenshots/controls for screen tasks or audio for voice transcription.
@@ -159,7 +185,7 @@ AI requests incur provider usage. Requests have a 2,600-token output cap. Do it 
 
 Use Node.js 22.12 or newer. Run `npm install` and `npm start`. `npm run build:assets` generates the PNG/ICO from the original SVG mark; `npm run dist` packages Windows.
 
-- `npm test`: 42 checks at the latest code verification, including the eight-action cap, unchanged-screen stopping, protected name/type matching, cancellation, and approval on repeated actions.
+- `npm test`: 43 checks at the latest code verification, including the eight-action cap, unchanged-screen stopping, protected name/type matching, cancellation, and approval on repeated actions.
 - `npm run test:native`: Windows native helper self-tests, including protected name/type substring checks.
 - `node tests/voice-task.cjs`: generated audio → automatic answer without dashboard opening → remembered real form filled automatically → explicit submission approval → verified result. Spoken Stop starts no task; provider responses are mocked.
 - `npm run test:voice`: generated fan/noise, speech followed by noise, and continuous speech through the real local detector and microphone recorder. No room audio is used; provider responses are fixtures.
@@ -167,13 +193,15 @@ Use Node.js 22.12 or newer. Run `npm install` and `npm start`. `npm run build:as
 - `npm run test:context`: context library UI, encrypted persistence, import/export, provider context inclusion and optional activity retention.
 - `npm run test:desktop`: legacy manual capture, preferences and provider bridge regression tests.
 - `npm run test:tasks`: real native multi-step form automation, review, submission, confirmation and general follow-up questions with provider fixtures.
-- `node tests/browser-forms.cjs`: real Chrome form filling/submission and selected-text reading.
+- `node tests/browser-forms.cjs`: real Chrome form filling/submission without forced-accessibility launch flags; highlighted text is sent to the AI and its meaning appears in the companion.
+- `node tests/current-browser.cjs`: opens a tab in the same browser window, preserves a generated session cookie, retains the original tab, and fills a field. Uses an owned local fixture, not personal cookies.
+- `node scripts/verify-demo.cjs`: four live OpenRouter demo checks: voice/highlighted meaning, existing-session navigation, reviewed form submission, and visual teaching. Uses generated speech and a local test website. Writes `test-results/demo-live-report.json`.
 - `node tests/cloud-voice.cjs`: recorder/transcription lifecycle using generated audio; provider responses are mocked.
 - `node tests/microphone.cjs`: real microphone start and cancel with no upload.
 - `node scripts/verify-tasks.cjs`: live Gemini general answers and autonomous changes to the local sample form using the saved key.
 - `node scripts/verify-openrouter.cjs`: live OpenRouter answer, generated speech transcription and visual teaching on the local sample form. Run `npm run test:voice` first to generate the speech fixture.
 
-To target the built app-folder EXE for the voice and task integration tests, set `$env:DEXTERITY_PACKAGED='1'` in PowerShell, run `node tests/voice-task.cjs` and `node tests/tasks.cjs`, then remove it with `Remove-Item Env:DEXTERITY_PACKAGED`. The voice test needs `test-results/speech.wav`, generated by `npm run test:voice`. Both packaged tests passed for the latest code update with mocked provider responses; this is not proof of live provider availability.
+To target the built app-folder EXE for the voice and task integration tests, set `$env:DEXTERITY_PACKAGED='1'` in PowerShell, run `node tests/voice-task.cjs` and `node tests/tasks.cjs`, then remove it with `Remove-Item Env:DEXTERITY_PACKAGED`. The voice test needs `test-results/speech.wav`, generated by `npm run test:voice`. Both packaged tests passed for the earlier automatic-voice update with mocked provider responses. The latest browser/visual rebuild was blocked from launch, so its packaged checks remain incomplete.
 
 Run desktop tests sequentially because they share the screen. Tests use temporary profiles unless explicitly described as live checks. Keep user keys out of tests, source and packaged files.
 

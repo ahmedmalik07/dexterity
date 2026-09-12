@@ -61,10 +61,10 @@ class TaskRunner {
   if(run.count>=8)return this.finish(run,'Stopped after 8 actions. Check the action log. What would you like me to do next?','ask');
   if(needsReview(action,context)&&!confirmed)throw new Error('This control requires your explicit approval.');
   this.emit({type:'task-progress',message:`${action.type}: ${label}`});
-  await this.act(action,context,confirmed);
+  const result=await this.act(action,context,confirmed);
   if(!this.active(run))return;
   run.count++;run.progress.push({action:action.type,target:label,value:action.type==='type'?action.value:undefined,result:'Action performed; inspect the next screen to verify outcome.'});
-  if(action.type==='open_url'){run.windowId='';run.remembered=false;}
+  if(action.type==='open_url'){run.windowId=result?.windowId||'';run.remembered=!!result?.windowId;}
   this.emit({type:'task-step',number:run.count,message:`${action.type}: ${label}`});
   const after=await this.read(run);
   if(!this.active(run))return;

@@ -1,18 +1,39 @@
 # Dexterity: hackathon demo and remaining work
 
+![Dexterity — understand, learn, act](docs/images/hero.svg)
+
+[Visual product tour](README.md#a-look-inside) · [Windows launch diagnosis and signed build path](docs/WINDOWS.md)
+
 Status: 12 September 2026, version 1.6. This is a working Windows prototype. Voice tasks now start automatically after transcription, with no Run step. The eight-action limit and mandatory approval checks remain. It does not add continuous observation or a Mac version.
 
 **The flow to present:** focus your app → hold Ctrl for 3 seconds → speak → pause → Dexterity works beside the cursor. Only a protected action needs an approval click. Set up the practice form before presenting so you can lead with the voice flow.
 
+## Current blockers — check before presenting
+
+The newest unsigned EXE is blocked by Windows Application Control on this PC. Automatic approval review also rejected starting the source launcher. The updated app is not running here; signing/approval must be resolved before presenting this build. Do not use this guide to imply the launch issue is solved.
+
+The live provider rehearsal passed voice answers, existing-session navigation, and visual teaching. It filled the browser form but returned a plain-text permission question before submission. The instruction has been corrected to request the application’s approval button, but this revised handoff has not been live-retested. Source tests passed actual Chrome form filling/submission and highlighted-text companion output, plus new-tab session preservation with a generated local cookie. The current Chrome application-form tab was inspected read-only: its visible text fields are exposed. This is not a guarantee for every Google Forms field or page.
+
 ## Before you present
 
-1. Open `release-v1.6/win-unpacked/Dexterity.exe`. On the development PC, the full path is `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`. Keep the entire `win-unpacked` folder together. This app-folder build passed the packaged voice and form tests.
+1. Open `release-v1.6/win-unpacked/Dexterity.exe`. On the development PC, the full path is `C:\Users\acer\Desktop\Work\clicky\release-v1.6\win-unpacked\Dexterity.exe`. Keep the entire `win-unpacked` folder together. Earlier app-folder builds passed packaged voice and form tests; the latest rebuild is blocked from launch on this PC.
 2. In **Settings**, check that your OpenRouter connection is configured. Run one short question to check the current connection and account access. The automated tests do not prove that your live provider has credit or that venue Wi-Fi will work. Keep credentials out of your presentation.
 3. Use a close microphone or headset. Rehearse one sentence in your own accent. Wait for Listening before speaking, then pause or use **Done speaking**. Voice starts work automatically. If the request is wrong, press **Escape**, then repeat it or use typed input.
 4. Close irrelevant windows and notifications. Use the local practice form with the sample details below. Keep **Escape** available to stop a task. Leave the target form untouched while Dexterity works.
 5. Rehearse the sequence below once with the actual provider. Allow extra time for network responses; the timings are a presentation target, not a latency guarantee.
 
 The older single-file `release-v1.6/Dexterity-1.6.0.exe` was built before automatic voice startup was restored, and Windows Application Control blocked its launch on this PC. It is not the tested launch path for this presentation. `Start Dexterity.cmd` also runs the source version when the project and installed dependencies are present.
+
+## Four concrete tasks to present
+
+| Task | Exact interaction | Visible success |
+| --- | --- | --- |
+| 1. Explain a highlighted word | Select **ubiquitous** in your current browser, then press **Ctrl + Shift + E**. Alternatively, say “What does ubiquitous mean? Give one example.” | Definition in the mint companion bubble; dashboard stays closed. |
+| 2. Open a page in the same session | Focus your normal signed-in browser. Say “Open https://example.com in a new tab in this browser.” Keep Use my screen on. | A new tab in the same window; the original tab and profile remain. |
+| 3. Fill and submit a form | Use the local practice form. Say “Fill this form with name Alex Builder and email alex@example.test. Submit after I review it.” | Correct values, approval button before submission, then visible confirmation. |
+| 4. Teach one visible step | Focus the form. Say “Teach me how to fill this form. Give one first step and point at Full name.” | Short mint teaching bubble and a marker when the model provides a valid target. |
+
+These are the scoped presentation tasks. The live verification uses an owned local browser form and generated session cookie to test preservation without touching your personal accounts. A cookie fixture is not a real login. For the stage, use your normal browser window; do not use an older Dexterity-created profile.
 
 ## Three-minute demo
 
@@ -27,7 +48,8 @@ Close the dashboard using its window close button. With the companion enabled, t
 1. In **Ask Dexterity**, select **Answer** and turn **Use my screen** off for this general question.
 2. Hold **Ctrl** for three seconds, or click the buddy. Say: “What does ubiquitous mean? Give me one example.”
 3. Pause. Transcription finishes and the request starts automatically. No dashboard or Run click is needed.
-4. Show the answer in the floating companion card. Say: “I speak once and it starts helping in place.” No screen capture is needed for this example.
+4. Show the answer in the compact mint companion bubble. Say: “I speak once and it starts helping in place.” No screen capture is needed for this voice example.
+5. To show selection instead, keep Use my screen on, highlight a word in your browser and press **Ctrl + Shift + E**. The meaning appears beside the cursor. Highlighting alone does not upload text.
 
 Triple left-click also activates voice, but those clicks still reach the underlying app. Use Ctrl or the buddy for the presentation.
 
@@ -85,6 +107,6 @@ The earlier voice Run gate has been removed at the user’s request. The eight-a
 
 ## Evidence and architecture for judges
 
-The latest code update passed 42 automated checks, native Windows self-tests, and voice/form integration tests against both source and the packaged application. Voice testing confirms that transcription starts a companion task automatically without showing the dashboard. A spoken form request fills real fields before the dashboard opens solely for protected submission approval. A recognized Stop starts no task. The form test exercised real Windows controls, approval, submission, and visible completion. The eight-action and unchanged-screen tests exercise the runner. Provider responses in these integration tests were mocked; generated speech was used for the voice test. A live run still needs the preflight above.
+The automated suite contains 43 checks. Native self-tests and source browser tests passed. Earlier voice/form tests passed against a packaged build; the latest rebuild is blocked, as described above. Voice testing confirms that transcription starts a companion task automatically without showing the dashboard. A spoken form request fills real fields before the dashboard opens solely for protected submission approval. A recognized Stop starts no task. The form test exercised real Windows controls, approval, submission, and visible completion. The eight-action and unchanged-screen tests exercise the runner. Provider responses in these integration tests were mocked; generated speech was used for the voice test. A live run still needs the preflight above.
 
 Personal context and optional task history are encrypted in `%APPDATA%\dexterity\context.vault`; API keys are encrypted in `preferences.json`. Audio and screenshots stay in app memory and are sent to the configured provider when needed. There is no Dexterity cloud database or account sync. The “agents” are sequential roles using separate requests, with one desktop operator. See [README.md](README.md) for usage and data details and [ARCHITECTURE.md](ARCHITECTURE.md) for implementation.

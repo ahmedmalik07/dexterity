@@ -15,5 +15,5 @@ contextBridge.exposeInMainWorld('dexterity', {
  nativeHealth: () => ipcRenderer.invoke('native:health'), onNative: cb => ipcRenderer.on('native:event', (_, event) => cb(event)),
  inspectForm: (remembered,windowId) => ipcRenderer.invoke('form:inspect', {remembered:!!remembered,windowId}), listFormWindows: () => ipcRenderer.invoke('form:windows'), fillForm: data => ipcRenderer.invoke('form:fill', data), submitForm: data => ipcRenderer.invoke('form:submit', data), practiceForm: () => ipcRenderer.invoke('form:practice'),
  openSpeechSettings: () => ipcRenderer.invoke('speech:settings'), holdCompanion: value => ipcRenderer.send('companion:hold', !!value), orbMenu: () => ipcRenderer.invoke('orb:menu'),
- openFormBrowser: url => ipcRenderer.invoke('form:browser',url)
+ openFormBrowser: (url,windowId) => ipcRenderer.invoke('form:browser',{url,windowId})
 });

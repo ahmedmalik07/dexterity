@@ -85,6 +85,50 @@ public static class DexterityNative {
         return windows;
     }
     static void RememberTarget() { IntPtr h = GetForegroundWindow(); if (h != IntPtr.Zero && !IsOurWindow(h)) target = h; }
+    static void WaitForBrowserContent(AutomationElement root) {
+        string name=Process.GetProcessById(root.Current.ProcessId).ProcessName.ToLowerInvariant();
+        if(!new[]{"chrome","msedge","brave","firefox","opera","vivaldi"}.Contains(name))return;
+        // Chromium can populate its accessibility tree asynchronously after the first read.
+        // Wait on observations only; do not relaunch, navigate, or repeat any user action.
+        root.FindAll(TreeScope.Descendants,Condition.TrueCondition);
+        for(int i=0;i<10;i++) {
+          var document=root.FindFirst(TreeScope.Descendants,new PropertyCondition(AutomationElement.ControlTypeProperty,ControlType.Document));
+          if(document!=null && document.FindFirst(TreeScope.Children,Condition.TrueCondition)!=null)return;
+          Thread.Sleep(150);
+        }
+    }
+    static object OpenBrowserUrl(Dictionary<string,object> command) {
+        Uri url;
+        if(!Uri.TryCreate(Text(command,"url"),UriKind.Absolute,out url) || (url.Scheme!="http" && url.Scheme!="https") || !String.IsNullOrEmpty(url.UserInfo))throw new Exception("Use an http or https website address without embedded credentials.");
+        long requested;string windowId=Text(command,"windowId");IntPtr h=GetForegroundWindow();
+        if(!String.IsNullOrEmpty(windowId)) { if(!Int64.TryParse(windowId,out requested))throw new Exception("Choose a valid browser window.");h=new IntPtr(requested); }
+        else if(IsOurWindow(h) && target!=IntPtr.Zero)h=target;
+        if(h==IntPtr.Zero || !IsWindow(h) || !IsWindowVisible(h) || IsOurWindow(h))throw new Exception("Focus your signed-in browser, or select it in Work in, then try again.");
+        uint pid;GetWindowThreadProcessId(h,out pid);string processName=Process.GetProcessById((int)pid).ProcessName.ToLowerInvariant();
+        if(!new[]{"chrome","msedge","brave","firefox","opera","vivaldi"}.Contains(processName))throw new Exception("Select your existing signed-in browser window. Dexterity will not open a separate browser profile.");
+        ShowWindow(h,9);SetForegroundWindow(h);Thread.Sleep(150);
+        if(GetForegroundWindow()!=h)throw new Exception("The browser could not be focused. Focus it yourself and try again.");
+        // A new tab in this exact window inherits its existing browser profile/session.
+        SendKeys.SendWait("^t");Thread.Sleep(300);
+        if(GetForegroundWindow()!=h)throw new Exception("Focus changed. Navigation stopped before entering the address.");
+        SendKeys.SendWait("^l");Thread.Sleep(150);
+        var address=AutomationElement.FocusedElement;object pattern;
+        if(address==null || address.Current.ProcessId!=(int)pid || address.Current.IsPassword || address.Current.ControlType!=ControlType.Edit || !address.TryGetCurrentPattern(ValuePattern.Pattern,out pattern))throw new Exception("This browser does not expose its address bar. Open the address yourself in this browser; no separate session was created.");
+        // Never enter a URL into a page field that intercepted a shortcut.
+        var ancestor=address;
+        while(ancestor!=null && ancestor.Current.NativeWindowHandle!=h.ToInt32()) {
+          if(ancestor.Current.ControlType==ControlType.Document)throw new Exception("The page intercepted navigation. Open the address yourself in this browser.");
+          ancestor=TreeWalker.ControlViewWalker.GetParent(ancestor);
+        }
+        if(ancestor==null)throw new Exception("Could not verify the browser address bar.");
+        if(RequiresExplicitReview(address.Current.Name,address.Current.ControlType.ProgrammaticName))throw new Exception("This address control requires review. Open the address yourself in your current browser.");
+        var value=(ValuePattern)pattern;
+        if(value.Current.IsReadOnly || GetForegroundWindow()!=h || !Automation.Compare(address,AutomationElement.FocusedElement))throw new Exception("The browser focus changed. Navigation stopped.");
+        value.SetValue(url.AbsoluteUri);
+        if(value.Current.Value!=url.AbsoluteUri || GetForegroundWindow()!=h || !Automation.Compare(address,AutomationElement.FocusedElement))throw new Exception("The browser did not accept the address or focus changed. Navigation stopped.");
+        SendKeys.SendWait("{ENTER}");target=h;
+        return new{windowId=h.ToInt64().ToString(),session="existing",opened=true};
+    }
     static void Activate(string reason) {
         if (clock.ElapsedMilliseconds-lastActivation < 1600 || listening) return;
         lastActivation = clock.ElapsedMilliseconds; RememberTarget();
@@ -142,6 +186,7 @@ public static class DexterityNative {
             if(!String.IsNullOrWhiteSpace(windowId)) { if(!Int64.TryParse(windowId,out explicitHandle))throw new Exception("Choose a valid window.");h=new IntPtr(explicitHandle); }
             if(h == IntPtr.Zero || !IsWindow(h) || !IsWindowVisible(h) || IsOurWindow(h)) throw new Exception("Choose your form window from the list, then inspect again.");
             var root = AutomationElement.FromHandle(h);
+            WaitForBrowserContent(root);
             fields.Clear(); buttons.Clear(); fieldLabels.Clear();buttonLabels.Clear();filledValues=null; submissionConsumed=false;
             formToken=Guid.NewGuid().ToString("N"); rootHandle=h; rootName=root.Current.Name; inspectedAt=DateTime.UtcNow;
             var edits = root.FindAll(TreeScope.Descendants, new PropertyCondition(AutomationElement.ControlTypeProperty,ControlType.Edit));
@@ -241,6 +286,7 @@ public static class DexterityNative {
         if(h==IntPtr.Zero || !IsWindow(h) || !IsWindowVisible(h) || IsOurWindow(h))throw new Exception("Choose the app you want help with in the Work in list, then try again.");
         SetForegroundWindow(h);target=h;
         var root=AutomationElement.FromHandle(h);
+        WaitForBrowserContent(root);
         agentControls.Clear();agentNames.Clear();agentValues.Clear();scrollTarget=null;agentToken=Guid.NewGuid().ToString("N");agentHandle=h;agentTitle=root.Current.Name;agentAt=DateTime.UtcNow;
         var controls=new List<object>();var texts=new StringBuilder();string selected="";
         var all=root.FindAll(TreeScope.Descendants,Condition.TrueCondition);
@@ -310,9 +356,10 @@ public static class DexterityNative {
     static void Dispatch(Dictionary<string,object> c) {
         string id=Text(c,"id"), command=Text(c,"command");
         try {
-            if(command == "listen" || command == "stop" || command == "configure") {
+            if(command == "listen" || command == "stop" || command == "configure" || command == "browser-url") {
                 dispatcher.BeginInvoke((Action)(() => {
                     try {
+                        if(command == "browser-url") { Reply(id,OpenBrowserUrl(c));return; }
                         if(command == "listen") StartListening();
                         if(command == "stop") StopListening();
                         if(command == "configure") { ctrlEnabled=Convert.ToBoolean(c["ctrl"]); tripleEnabled=Convert.ToBoolean(c["triple"]); }
