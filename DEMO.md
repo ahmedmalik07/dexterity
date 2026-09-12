@@ -4,6 +4,8 @@
 
 [Visual product tour](docs/GALLERY.md) · [Windows launch diagnosis and signed build path](docs/WINDOWS.md)
 
+For the submission video, use the [two-minute story and recording script](VIDEO_SCRIPT.md).
+
 Status: 12 September 2026, version 1.6. This is a working Windows prototype. Voice tasks now start automatically after transcription, with no Run step. The eight-action limit and mandatory approval checks remain. It does not add continuous observation or a Mac version.
 
 **The flow to present:** focus your app → hold Ctrl for 3 seconds → speak → pause → Dexterity works beside the cursor. Only a protected action needs an approval click. Set up the practice form before presenting so you can lead with the voice flow.
