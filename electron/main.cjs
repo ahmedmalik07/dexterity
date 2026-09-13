@@ -17,7 +17,7 @@ const background = !!(process.env.DEXTERITY_TEST || process.env.DEXTERITY_SETUP)
 let main, orb, pointer, listeningWindow, native, followTimer, pointerTimer, capture, pending = false, orbHeld = false, isListening = false, formBusy = false, voiceStarting = false;
 let voiceSession, quitting=false, taskRunner, contextStore, contextError, coach, coachWindow;
 if(!background){if(!app.requestSingleInstanceLock()){app.quit();return;}app.on('second-instance',()=>{if(main&&!main.isDestroyed())dashboard();});}
-let settings = { model: DEFAULT_MODEL, routerModel:ROUTER_MODEL,routerKey:'',voice: true, demo: false, key: '', geminiKey: '', speechMode:'auto', speechLanguage:'auto', speechPause:1200, speechVocabulary:'', voiceReview:true, ctrlActivation: true, tripleActivation: true, companion: true };
+let settings = { model: DEFAULT_MODEL, routerModel:ROUTER_MODEL,routerKey:'',voice: true, demo: false, key: '', geminiKey: '', speechMode:'auto', speechLanguage:'auto', speechPause:1200, speechVocabulary:'', voiceReview:false, ctrlActivation: true, tripleActivation: true, companion: true };
 const prefs = () => path.join(app.getPath('userData'), 'preferences.json');
 function publicSettings() { return { model: settings.model,routerModel:settings.routerModel,hasRouterKey:!!settings.routerKey,bundledRouterKey:!!bundled.routerKey&&settings.routerKey===bundled.routerKey, geminiModel:GEMINI_MODEL, voice: settings.voice, demo:false, speechMode:settings.speechMode,speechLanguage:settings.speechLanguage,speechPause:settings.speechPause,speechVocabulary:settings.speechVocabulary,voiceReview:settings.voiceReview,hasKey: !!settings.key, hasGeminiKey:!!settings.geminiKey, hasAIKey:!!(settings.routerKey||settings.key || settings.geminiKey), encrypted: safeStorage.isEncryptionAvailable(), ctrlActivation: settings.ctrlActivation, tripleActivation: settings.tripleActivation, companion: settings.companion }; }
 function broadcast(event) { for(const window of [main, listeningWindow]) if(window && !window.isDestroyed()) window.webContents.send('native:event', event); }
@@ -206,6 +206,7 @@ ipcMain.handle('voice:audio',async(event,data)=>{
   if(voiceSession!==session)return;
   endCloudVoice(session);
   if(!result.text)return broadcast({type:'native-error',error:'No clear speech heard. Try again and speak a little closer to the microphone.'});
+  if(settings.voiceReview)dashboard();
   broadcast({type:'transcript',...result,review:settings.voiceReview});
  }catch(error){if(voiceSession===session)endCloudVoice(session,error.message);}
 });

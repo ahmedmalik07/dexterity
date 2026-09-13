@@ -1,4 +1,4 @@
-# Dexterity 1.6 architecture
+# Dexterity 1.7 architecture
 
 ![Agent roles shown in the Dexterity interface](docs/images/agent-workflow.png)
 
@@ -8,7 +8,11 @@ Dexterity is a Windows desktop application with durable personal context and a c
 
 The cursor lesson surface (`electron/coach.cjs`, `ui/coach.*`) displays a single teaching step outside the dashboard, requests fresh observations for continuation, and keeps the original goal. The model can return a normalized screenshot target; the main process converts it to display coordinates and draws a click-through overlay. Pointer targets expire and native window title/bounds are checked before redisplay. A pointer is advisory, never an automatic click.
 
-OpenRouter is the primary provider whenever its key is saved. Screen requests use Gemini 2.5 Flash; microphone transcription uses Flash Lite through OpenRouter. OpenRouter errors surface directly rather than silently switching to a separate direct-provider account. Without OpenRouter, the existing direct OpenAI/Gemini fallback applies. Keys are Windows-encrypted outside the repo.
+OpenRouter is the primary provider whenever its key is saved. Screen requests ask for Gemini 2.5 Pro and pass a fallback list, so OpenRouter serves 2.5 Flash and then Flash Lite when the chosen model is unavailable or rate limited; the served model is read back from the response and reported to the interface rather than assumed. Microphone transcription uses Flash Lite and sends no fallback list, so a voice request can never be silently upgraded to a reasoning model. Remaining OpenRouter errors surface directly rather than silently switching to a separate direct-provider account. Without OpenRouter, the existing direct OpenAI/Gemini fallback applies.
+
+A build may ship a demo credential in `electron/bundled-key.cjs`. That file is excluded from Git and appears in no commit, so the key is never published with the source, but it is packaged into the executable and can be extracted from it. It is only a default: a key saved in Settings replaces it, and automated test runs ignore it entirely so tests never reach a live provider. Keys saved by the user are Windows-encrypted outside the repo.
+
+Each provider response carries its token counts through to the runner, which totals requests, tokens and elapsed time per task and estimates a price from a small table of published per-token rates in `electron/core.cjs`. A model with no published rate reports tokens and no price rather than a guessed one.
 
 The activated recorder runs Silero V5 locally with ONNX Runtime Web. All model, worklet and WASM assets are copied from pinned npm dependencies at installation; its CSP permits only local assets and WASM compilation. Speech must pass the detector threshold and minimum duration. No-speech recordings stop at six seconds without upload. Speech ends after the selected silence duration, with a 15-second hard cap in both the renderer and a main-process watchdog. Microphone tracks stop before transcription. Noise suppression/echo cancellation are enabled, automatic gain disabled. The detector does not identify the user's voice versus another speaker.
 
@@ -57,7 +61,7 @@ Voice uses the window remembered at activation. Typed tasks may use the dashboar
 | Context manager | `electron/context-store.cjs` | Local keyword retrieval over enabled entries, with profile/preference priority. At most 8 records / 16,000 text characters. No embedding or extraction API cost. |
 | Coordinator | `electron/team.cjs` | One structured AI request per Do task; returns summary, 1–6 steps and observable success. Cannot execute. |
 | Operator / teacher / answer specialist | `electron/agent.cjs` | Mode-specific structured request. Operator returns exactly one supported action against the current observation. Explanation modes cannot execute. |
-| Verifier | `verifyTask` in `electron/agent.cjs` | Separate provider request checks completion; requested text field checks are compared against current values in code. Can return missing steps. |
+| Verifier | `verifyTask` in `electron/agent.cjs` | Separate provider request checks completion; requested text field checks are compared against current values in code. Can return missing steps. Its verdict is written to the visible action log as a pass or fail row before the runner continues. |
 | Task runner | `electron/task-runner.cjs` | Owns cancellation, role events, plan, progress, memory snapshot, review, bounded loop and last-six-exchange conversation. |
 | Native executor | `native/Dexterity.Native.cs` | Windows UI Automation actions against short-lived snapshots. Rejects password fields, changed controls and changed values after review. |
 | Context IPC | `electron/context-ipc.cjs` | Main-window-only context operations, native file selection, bounded local import and export. Library mutations wait until the active task stops. |
@@ -89,6 +93,18 @@ URL navigation uses the exact selected/current browser window. The native helper
 Chromium may populate its accessibility tree after the first read. The native helper waits for document children for up to roughly 1.5 seconds using read-only observations; it does not relaunch the browser or retry an action.
 
 The 48-pixel companion window shows a small mint-and-dark-green cursor. A compact pale-mint coach bubble shows answers, progress and teaching steps; the click-through target overlay uses a green pointer and label. Ctrl + Shift + E requests the current selection’s meaning as a companion task, keeping the dashboard hidden. Highlighting alone does not send a request.
+
+## What the interface exposes about a run
+
+The dashboard renders four things the runner emits, so a task can be inspected rather than trusted.
+
+The coordinator plan appears before the first action, with its steps and the observable success criterion it was given.
+
+The action log lists every action actually performed, each with the second it happened, the control it touched, the value typed and whether the user approved it. Verifier verdicts are appended to the same log as pass or fail rows, so a failed completion check and the retry that follows are both visible instead of implied. Rows carry a kind marker, which the integration tests use to count actions and checks separately.
+
+A badge above the log shows elapsed seconds, model requests, total tokens, the estimated price and the model that served the request, updating while the task runs and finalising when it ends.
+
+Spoken requests run hands-free by default: transcription starts the task beside the cursor with no dashboard. An optional review setting instead brings the dashboard forward with the recognised text in an editable field and a five-second countdown, which stops as soon as the text is edited. The main process shows the window before broadcasting the transcript, because a review rendered into a hidden window would silently discard the request. Both paths are covered by the voice integration test.
 
 ## Execution and failure handling
 

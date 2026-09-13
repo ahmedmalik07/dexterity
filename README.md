@@ -53,7 +53,7 @@ A little AI buddy next to your cursor. Ask about what you see, learn an app one 
 
 The current unsigned EXE was rebuilt, but **Windows Application Control now blocks it on this PC**. An attempt to start the source launcher was also rejected by automatic approval review. The updated app is not running here. Do not treat the older passing packaged tests as certification of this latest build. A signed/approved build is needed for the local EXE demo; no security settings were changed.
 
-The existing-session browser fix and highlighted-text companion flow passed source integration checks. Live OpenRouter passed voice answers, navigation in the same browser session, and visual teaching. Live form filling reached the requested values but asked for permission in text instead of the approval UI; its prompt was corrected, and that final handoff still needs live re-verification. See [DEMO.md](DEMO.md).
+The existing-session browser fix and highlighted-text companion flow passed source integration checks. A live OpenRouter run of the real decision path filled two form fields, answered a general question, produced a teaching step with a pointer target, and correctly refused a claim of completion while a requested field was still empty. The full source suite, the desktop and packaged smoke tests, the voice path and a real Windows form task all pass. Accuracy on your own voice is the one thing automated tests cannot establish. See [DEMO.md](DEMO.md).
 
 ## Use it when the build is permitted to launch
 
@@ -73,7 +73,7 @@ OpenRouter uses `google/gemini-2.5-pro` for screen guidance, falling back to `go
 
 **A built-in demo key.** This build ships an OpenRouter credential so it works with no setup. It lives in `electron/bundled-key.cjs`, which is excluded from Git, so the key is never published with the source. A key you paste into Settings replaces it. Rotate the built-in key after the event.
 
-**Check what it heard before it acts.** After transcription, the recognised text appears in an editable box with a five-second countdown. Correct a word and the countdown stops. Run it now, say it again, or cancel. Turn this off in Settings for fully hands-free voice.
+**Optionally check what it heard before it acts.** Hands-free stays the default: a spoken request still runs beside your cursor with no dashboard. Switch the review on in Settings and the dashboard comes forward with the recognised text in an editable box and a five-second countdown. Correct a word and the countdown stops. Run it now, say it again, or cancel.
 
 **Spelling hints for your accent.** Settings has a **Words Dexterity keeps mishearing** field. Names, apps and places you enter there are sent with each recording as preferred spellings. This is the single most effective fix when a recogniser keeps producing the wrong proper noun.
 
@@ -228,9 +228,9 @@ AI requests incur provider usage. Requests have a 2,600-token output cap. Do it 
 
 Use Node.js 22.12 or newer. Run `npm install` and `npm start`. `npm run build:assets` generates the PNG/ICO from the original SVG mark; `npm run dist` packages Windows.
 
-- `npm test`: 43 checks at the latest code verification, including the eight-action cap, unchanged-screen stopping, protected name/type matching, cancellation, and approval on repeated actions.
+- `npm test`: 50 checks at the latest code verification, including the eight-action cap, unchanged-screen stopping, protected name/type matching, cancellation, approval on repeated actions, the OpenRouter fallback list, the served-model report, cost estimation, usage totals, transcription spelling hints, and an action ledger that records a failed completion check before the runner continues.
 - `npm run test:native`: Windows native helper self-tests, including protected name/type substring checks.
-- `node tests/voice-task.cjs`: generated audio → automatic answer without dashboard opening → remembered real form filled automatically → explicit submission approval → verified result. Spoken Stop starts no task; provider responses are mocked.
+- `node tests/voice-task.cjs`: generated audio → automatic answer without dashboard opening → remembered real form filled automatically → explicit submission approval → verified result. Spoken Stop starts no task. With the optional review switched on, the dashboard is asserted to come forward with the recognised text, because a review rendered into a hidden window would discard the request. Provider responses are mocked.
 - `npm run test:voice`: generated fan/noise, speech followed by noise, and continuous speech through the real local detector and microphone recorder. No room audio is used; provider responses are fixtures.
 - `npm run test:coach`: real sample window, floating lesson, pointer placement flow and next-step recapture with provider fixtures.
 - `npm run test:context`: context library UI, encrypted persistence, import/export, provider context inclusion and optional activity retention.

@@ -31,16 +31,27 @@ const{_electron:electron}=require('@playwright/test');const path=require('node:p
   await page.evaluate(async()=>{document.getElementById('task-screen').checked=true;chooseTaskMode('answer');await api.practiceForm();await api.listen();});
   await listener.waitForFunction(()=>recording?.recorder?.state==='recording',{},{polling:100});await new Promise(r=>setTimeout(r,1200));await page.evaluate(()=>api.finishListening());
   await page.locator('#task-review').waitFor({state:'visible',timeout:60000});
-  assert.equal(await page.locator('#task-log li').count(),2);assert.match(await page.locator('#task-review-fields').innerText(),/Alex Builder/);
+  assert.equal(await page.locator('#task-log li[data-kind="action"]').count(),2);assert.match(await page.locator('#task-review-fields').innerText(),/Alex Builder/);
   assert.equal(await desktop.evaluate(()=>globalThis.dashboardShows),1,'only protected action approval opens dashboard');
   assert.equal(await desktop.evaluate(()=>globalThis.voiceRequests),1);
   await page.locator('#task-approve').click();
   await page.waitForFunction(()=>!taskRunning&&document.getElementById('task-answer').textContent==='Voice form task complete.',{},{polling:100,timeout:30000});
-  assert.equal(await page.locator('#task-log li').count(),3);assert.equal(await desktop.evaluate(()=>globalThis.dashboardShows),1);
+  assert.equal(await page.locator('#task-log li[data-kind="action"]').count(),3);assert.equal(await desktop.evaluate(()=>globalThis.dashboardShows),1);
   console.log('PASS: spoken task → remembered real form → automatic field actions → protected submission approval → verified result.');
   const prior=await desktop.evaluate(()=>globalThis.taskRequests);
   await desktop.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().endsWith('/index.html')).webContents.send('native:event',{type:'transcript',text:'Stop.'}));
   await page.waitForTimeout(300);assert.equal(await desktop.evaluate(()=>globalThis.taskRequests),prior);assert.equal(await page.evaluate(()=>taskRunning),false);
   console.log('PASS: spoken Stop does not start another task.');
+  // Turning the review on must bring the dashboard forward; otherwise the recognised text lands in a hidden window.
+  await page.evaluate(async()=>{prefs=await api.saveSettings({...prefs,voiceReview:true});syncSettings();});
+  const shownBefore=await desktop.evaluate(()=>globalThis.dashboardShows);
+  await desktop.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().endsWith('/index.html')).hide());
+  await page.evaluate(()=>api.listen());await listener.waitForFunction(()=>recording?.recorder?.state==='recording',{},{polling:100});
+  await new Promise(r=>setTimeout(r,1200));await page.evaluate(()=>api.finishListening());
+  await page.locator('#heard-review').waitFor({state:'visible',timeout:25000});
+  assert.ok(await desktop.evaluate(()=>globalThis.dashboardShows)>shownBefore,'the review must open the dashboard, not hide in it');
+  assert.equal(await desktop.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().endsWith('/index.html')).isVisible()),true);
+  await page.locator('#voice-heard-cancel').click();
+  console.log('PASS: optional voice review opens the dashboard and can be cancelled.');
  }finally{await desktop.close();}
 })().catch(e=>{console.error(e);process.exit(1);});

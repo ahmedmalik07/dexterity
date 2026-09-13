@@ -6,25 +6,26 @@
 
 For the submission video, use the [two-minute story and recording script](VIDEO_SCRIPT.md).
 
-Status: 12 September 2026, version 1.6. This is a working Windows prototype. Voice tasks now start automatically after transcription, with no Run step. The eight-action limit and mandatory approval checks remain. It does not add continuous observation or a Mac version.
+Status: 13 September 2026, version 1.7. This is a working Windows prototype. Screen understanding runs on Gemini 2.5 Pro through OpenRouter, with automatic downgrade to 2.5 Flash and then Flash Lite when the chosen model is unavailable or rate limited. Voice tasks still start automatically after transcription, with no Run step. Every task now shows a visible action log and its measured time, requests, tokens and estimated price. The eight-action limit and mandatory approval checks remain. It does not add continuous observation or a Mac version.
 
 **The flow to present:** focus your app → hold Ctrl for 3 seconds → speak → pause → Dexterity works beside the cursor. Only a protected action needs an approval click. Set up the practice form before presenting so you can lead with the voice flow.
 
 ## Current blockers — check before presenting
 
-The newest unsigned EXE is blocked by Windows Application Control on this PC. Automatic approval review also rejected starting the source launcher. The updated app is not running here; signing/approval must be resolved before presenting this build. Do not use this guide to imply the launch issue is solved.
+The source launcher works. `Start Dexterity.cmd` started version 1.7 on this PC and the window opened, so that is the tested launch path for the presentation. The packaged executable is still unsigned, and Windows Application Control has blocked the single-file portable wrapper here before. Version 1.7 also passed an automated launch of the packaged app-folder executable under test conditions. Do not promise the unsigned build will start on an unfamiliar PC.
 
 The live provider rehearsal passed voice answers, existing-session navigation, and visual teaching. It filled the browser form but returned a plain-text permission question before submission. The instruction has been corrected to request the application’s approval button, but this revised handoff has not been live-retested. Source tests passed actual Chrome form filling/submission and highlighted-text companion output, plus new-tab session preservation with a generated local cookie. The current Chrome application-form tab was inspected read-only: its visible text fields are exposed. This is not a guarantee for every Google Forms field or page.
 
 ## Before you present
 
-1. Open `release-v1.7/win-unpacked/Dexterity.exe`. On the development PC, the full path is `C:\Users\acer\Desktop\Work\clicky\release-v1.7\win-unpacked\Dexterity.exe`. Keep the entire `win-unpacked` folder together. Earlier app-folder builds passed packaged voice and form tests; the latest rebuild is blocked from launch on this PC.
-2. In **Settings**, check that your OpenRouter connection is configured. Run one short question to check the current connection and account access. The automated tests do not prove that your live provider has credit or that venue Wi-Fi will work. Keep credentials out of your presentation.
+1. Double-click **Start Dexterity.cmd**, which started version 1.7 successfully on this PC. The packaged alternative is `release-v1.7/win-unpacked/Dexterity.exe`, kept together with the whole `win-unpacked` folder. It is unsigned, so prefer the launcher on stage.
+2. This build ships with a working OpenRouter key, so it runs with no setup. Still run one short question before presenting to confirm the account has credit and the venue network allows the request. The automated tests do not prove either. Keep the Settings page off screen during the presentation, and rotate the built-in key after the event.
 3. Use a close microphone or headset. Rehearse one sentence in your own accent. Wait for Listening before speaking, then pause or use **Done speaking**. Voice starts work automatically. If the request is wrong, press **Escape**, then repeat it or use typed input.
-4. Close irrelevant windows and notifications. Use the local practice form with the sample details below. Keep **Escape** available to stop a task. Leave the target form untouched while Dexterity works.
-5. Rehearse the sequence below once with the actual provider. Allow extra time for network responses; the timings are a presentation target, not a latency guarantee.
+4. Put the names, places and app names you will say into **Settings → Words Dexterity keeps mishearing**. They are sent with every recording as preferred spellings, and this is the most effective fix when a recogniser keeps producing the wrong proper noun. If you would rather confirm each spoken request, switch on **Show me what you heard before running**; the dashboard then opens with the recognised text and a five-second countdown. It is off by default so the hands-free flow above stays intact.
+5. Close irrelevant windows and notifications. Use the local practice form with the sample details below. Keep **Escape** available to stop a task. Leave the target form untouched while Dexterity works.
+6. Rehearse the sequence below once with the actual provider. Allow extra time for network responses; the timings are a presentation target, not a latency guarantee.
 
-The older single-file `release-v1.7/Dexterity-1.7.0.exe` was built before automatic voice startup was restored, and Windows Application Control blocked its launch on this PC. It is not the tested launch path for this presentation. `Start Dexterity.cmd` also runs the source version when the project and installed dependencies are present.
+The single-file `release-v1.7/Dexterity-1.7.0.exe` was blocked by Windows Application Control on this PC and is not the tested launch path for this presentation. `Start Dexterity.cmd` also runs the source version when the project and installed dependencies are present.
 
 ## Four concrete tasks to present
 
@@ -59,9 +60,10 @@ Triple left-click also activates voice, but those clicks still reach the underly
 
 1. Choose **Try real automation** under **How to use Dexterity for everyday work**. This opens **Dexterity practice form**, selects **Do it**, enables screen use, selects the form, and inserts a suggested task.
 2. Close the dashboard, focus the practice form, and hold Ctrl for three seconds. Say: “Fill this practice form with name Alex Builder and email alex@example.test. Submit the registration after I review it.” Pause. The task starts automatically against the remembered form.
-3. Show the name and email changing in the actual form and the companion's progress. Say: “It reads the app again after each action. A coordinator plans, one operator acts, and a verifier checks the result.” The detailed plan and action log are in the dashboard when it opens for review.
+3. Show the name and email changing in the actual form and the companion's progress. Say: “It reads the app again after each action. A coordinator plans, one operator acts, and a verifier checks the result.” The plan, the action log and the running cost badge are in the dashboard when it opens for review.
 4. At **Approve this action**, show the filled values and the Submit registration target. Nothing has submitted yet. Check the details, then click **Approve this action & continue** before the review expires.
 5. Show `Submitted: Alex Builder` in the local form and Dexterity’s completion response. This changes a real Windows form, but sends no registration to a website.
+6. Point at the action log and the badge above it. Every action performed is listed with the control it touched and the value typed, the completion check appears as its own pass or fail row, and the badge shows the elapsed time, model requests, tokens and estimated price for the task you just watched.
 
 Say: “Each task allows at most eight actions. Two consecutive actions without an observable screen change stop the task and show what was tried. Controls containing submit, send, pay, delete, confirm, or purchase in their name or type always require approval.”
 
@@ -93,13 +95,16 @@ Close with: “The useful part is staying in the app I’m working in, with cont
 | Two unchanged actions or eight-action limit | Read the handoff and action log. Inspect the app, then give a smaller new goal. The app does not silently resume. |
 | Approval expires or a reviewed field changes | Start again to read the current state, then review the new action. |
 | No teaching marker | Use the written instruction. Reframe the question around one visible control; do not claim exact pointing is available everywhere. |
+| Answers feel slow on stage | Change the model in Settings to `google/gemini-2.5-flash`. Measured on the same live path it is roughly twice as fast and a fifth of the price, but it places on-screen pointers less accurately. |
+| A model is rate limited | Nothing to do. OpenRouter moves to the next model in the list and the answer names the one that actually served it. |
 
 ## What remains
 
 | Priority | Remaining work | Current boundary |
 | --- | --- | --- |
-| Before presenting | Live rehearsal on the demo microphone, network, and actual provider account | Generated audio and mocked provider tests passed; they do not establish your accent accuracy or current provider availability. |
-| Before wider Windows distribution | Signed packaging and validation on other PCs | The app-folder EXE works here. Application Control blocked the single-file portable wrapper. |
+| Before presenting | Live rehearsal on the demo microphone with your own voice | Generated audio, mocked provider tests and a live provider run all passed; none of them establish accuracy on your accent. |
+| After the event | Rotate the built-in OpenRouter key | It ships inside the executable, so anyone holding the executable can extract it. It is excluded from Git and appears in no commit. |
+| Before wider Windows distribution | Signed packaging and validation on other PCs | The source launcher starts version 1.7 here and the packaged app-folder executable passes an automated launch. Application Control blocked the single-file portable wrapper. |
 | Product expansion | Opt-in continuous observation and proactive suggestions | The buddy remains present, but screen/audio capture is on demand. It needs an initial goal. Imported context does not grant authority to choose tasks. |
 | Product expansion | Mac native control, activation, permissions, packaging, and device testing | No Mac build exists. Claude delegation was unavailable. The current native helper depends on Windows APIs. |
 | Reliability | Human accent/noisy-room evaluation, app coverage, and DaVinci workflow testing | VAD does not identify which person is speaking. Automation needs supported accessibility controls. Visual teaching is approximate. |
@@ -109,6 +114,6 @@ The earlier voice Run gate has been removed at the user’s request. The eight-a
 
 ## Evidence and architecture for judges
 
-The automated suite contains 43 checks. Native self-tests and source browser tests passed. Earlier voice/form tests passed against a packaged build; the latest rebuild is blocked, as described above. Voice testing confirms that transcription starts a companion task automatically without showing the dashboard. A spoken form request fills real fields before the dashboard opens solely for protected submission approval. A recognized Stop starts no task. The form test exercised real Windows controls, approval, submission, and visible completion. The eight-action and unchanged-screen tests exercise the runner. Provider responses in these integration tests were mocked; generated speech was used for the voice test. A live run still needs the preflight above.
+The automated suite contains 50 checks, including the cost estimate, the usage totals, the spelling hints and the action ledger, with a failed completion check asserted to reach the visible log before the runner continues. Native self-tests and source browser tests passed. Earlier voice/form tests passed against a packaged build; the latest rebuild is blocked, as described above. Voice testing confirms that transcription starts a companion task automatically without showing the dashboard. A spoken form request fills real fields before the dashboard opens solely for protected submission approval. A recognized Stop starts no task. The form test exercised real Windows controls, approval, submission, and visible completion. The eight-action and unchanged-screen tests exercise the runner. Provider responses in these integration tests were mocked; generated speech was used for the voice test. A live run against OpenRouter exercised the real decision path on a screenshot: two form-filling actions, a general answer, a teaching step with a pointer target, and a completion check that correctly refused a claim of completion while a requested field was still empty. Measured on that path, Gemini 2.5 Pro took 7.8 seconds and about $0.0065 for a field action against 4.0 seconds and $0.0014 for 2.5 Flash, and both decided correctly. A live run with your own microphone still needs the preflight above.
 
 Personal context and optional task history are encrypted in `%APPDATA%\dexterity\context.vault`; API keys are encrypted in `preferences.json`. Audio and screenshots stay in app memory and are sent to the configured provider when needed. There is no Dexterity cloud database or account sync. The “agents” are sequential roles using separate requests, with one desktop operator. See [README.md](README.md) for usage and data details and [ARCHITECTURE.md](ARCHITECTURE.md) for implementation.

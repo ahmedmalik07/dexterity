@@ -15,7 +15,7 @@ function syncSettings() {
  if($('router-key')){$('router-key').value='';$('router-key').placeholder=prefs.hasRouterKey?'Key saved — enter a replacement':'Paste your OpenRouter API key';$('router-model').value=prefs.routerModel||'google/gemini-2.5-pro';$('router-status').textContent=prefs.bundledRouterKey?'Using this build’s built-in demo key. Paste your own to replace it.':prefs.hasRouterKey?'Your OpenRouter key is saved and used first for AI requests.':'Add OpenRouter for screen understanding and multilingual voice.';}
  if($('speech-mode')){$('speech-mode').value=prefs.speechMode;$('speech-language').value=prefs.speechLanguage;$('speech-pause').value=String(prefs.speechPause);}
  if($('speech-vocabulary'))$('speech-vocabulary').value=prefs.speechVocabulary||'';
- if($('voice-review'))$('voice-review').checked=prefs.voiceReview!==false;
+ if($('voice-review'))$('voice-review').checked=prefs.voiceReview===true;
  $('gemini-key').value=''; $('gemini-key').placeholder=prefs.hasGeminiKey?'Key saved — enter a new key to replace it':'Paste your Google AI Studio API key';
  $('gemini-key-status').textContent=prefs.hasGeminiKey?(prefs.encrypted?'Gemini key saved with Windows encryption.':'Gemini key available for this visit only.'):'Add a Gemini key to enable the backup.';
  if($('ctrl-activation')) { $('ctrl-activation').checked=prefs.ctrlActivation; $('triple-activation').checked=prefs.tripleActivation; }
